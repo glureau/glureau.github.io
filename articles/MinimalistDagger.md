@@ -35,51 +35,125 @@ Scopes and multi components are complex to deal with, and can lead to subtle err
 
 If you need an instance of an object and you don't care about sharing it, just use @Inject on the class constructor you want to inject and where you need the dependency.
 
-class SteeringWheel @Inject constructor() {
-	// Use @Inject on an empty constructor will define to your DI library how to create the class.
-	// The other way to do it is to create a Module, but that's more verbose and coupling with Dagger, we don't want that.
-}
+	class SteeringWheel @Inject constructor() {
+		// Use @Inject on an empty constructor will define to your DI library how to create the class.
+		// The other way to do it is to create a Module, but that's more verbose and coupling with Dagger, we don't want that.
+	}
 
-class Car @Inject constructor(val steeringWheel: SteeringWheel) {
-	// When creating a car, your DI library will create a new SteeringWheel.
-}
+	class Car @Inject constructor(val steeringWheel: SteeringWheel) {
+		// When creating a car, your DI library will create a new SteeringWheel.
+	}
 
 If you need to keep something for all the application run, you just have to add @Singleton on the shared class:
 
-@Singleton
-class World @Inject constructor() {
-	val createdCityCount = AtomicInt(0)
-	// Only one instance will be created (more on that later).
-}
-
-class City @Inject constructor(val world: World) {
-	// When creating multiple cities, all cities will be created with the same world instance.
-	init {
-		world.createdCityCount.increment()
+	@Singleton
+	class World @Inject constructor() {
+		val createdCityCount = AtomicInt(0)
+		// Only one instance will be created (more on that later).
 	}
-}
 
-Finally you need to define a Component for the application, to access your dependencies.
+	class City @Inject constructor(val world: World) {
+		// When creating multiple cities, all cities will be created with the same world instance.
+		init {
+			world.createdCityCount.increment()
+		}
+	}
+
+
+## Implementation
+
+First you need to define a Component for the application, to access your dependencies.
+
+	@Singleton
+	@Component
+	interface AppComponent {
+	    // List all the classes where you want to inject fields (not required when injecting via constructor)
+	    // Can also add accessor to singleton objects if required.
+	}
+
+And a way to access the component from everywhere when injecting fields:
+
+	class MyApplication : Application() { // Update your manifest accordingly if you created this new Application class
+	    val component = DaggerAppComponent.create()
+	}
+
+	val Fragment.injector: AppComponent
+	    get() = (requireActivity().application as MyApplication).component
+
+
+You're good to go!
+
+### An example 
+
+Let's define a Singleton:
+
+	@Singleton
+	class NotificationManager @Inject constructor() {
+	    val count: Int = 0
+	}
+
+An unscoped ViewModel:
+
+	class DashboardViewModel @Inject constructor() {
+	    val text: String = "Dashboard"
+	}
+
+Now when using a fragment, you can do :
+
+	class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
+	    
+	    @Inject
+	    protected lateinit var notification: NotificationManager
+	    @Inject
+	    protected lateinit var viewModel: DashboardViewModel
+	    
+	    override fun onCreate(savedInstanceState: Bundle?) {
+	        super.onCreate(savedInstanceState)
+	        injector.inject(this)
+	    }
+
+	    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+	        super.onViewCreated(view, savedInstanceState)
+	        val textView: TextView = view.findViewById(R.id.text_dashboard)
+	        textView.text = viewModel.text + " (notif=" + notification.count + ")"
+	    }
+	}
 
 
 ## Things to keep in mind
 
-Singletons are not Java static classes nor Kotlin **object**s. They are unique only in the components we define, so using @Singleton and using a static variable are fundamentally different.
-Singletons are created lazily, that means they are instantiated when required only. If you define a singleton with a behaviour in the constructor but no one refers to it, this class will never be created, and the code in construtor will never run.
+Singletons are not Java static classes nor Kotlin **object**s. They are unique only in our Dagger component, so using @Singleton and using a static variable are fundamentally different.
+
+Singletons are created lazily, that means they are instantiated when required only. If you define a singleton with a behaviour in the constructor but no one refers to it, this class will never be created, and the code in construtor will never run. 
+A simple workaround can be to add a line in your application to trigger the lazy resolution. 
+
+	class MyApplication : Application() {
+	    val component = DaggerAppComponent.create()
+	    init {
+	    	component
+	    }
+	}
+
 Once instantiated, a Singleton will never be released, unless the app is terminated (crash, process killed manually or by the OS).
 
-If the process crash (low memory -> Android decides to kill your process), the data in Singletons (or even static classes/kotlin objects) are lost, BUT the backstack (Activities/Fragments) are saved automatically by the OS. So if you do nothing, when the app restore a screen, it will start with a new Singleton, so you should not rely on the fact that you came from another screen that has passed the data to a singleton to retrieve it.
+If the process crash (low memory -> Android decides to kill your process), the data in Singletons (or even Java static classes/kotlin objects) are lost, BUT the backstack (Activities/Fragments) are saved automatically by the OS. So if you do nothing, when the app restore a screen, it will start with a new Singleton. As a consequence, you should not rely on the fact that you came from another screen that has passed the data to a singleton to retrieve it.
 In this case, a few options:
 - Store the states you want to reload (onSaveInstanceState/SharedPreferences/Database/SavedStateHandle/...)
 - Detect the restoration and reload your application to the default screen (startActivity with a flag to clear all other activies, and restart from a clean state).
-The latter is great for little teams or projects that don't want to spend too much time on data migration and tests. The first option will provide a better user experience in such not-so-rare cases.
+The latter is great for little teams or projects that don't want to spend too much time on data migration and tests. The first option will provide a better user experience in thoses cases.
 
-Using @Singleton or using nothing special means there is 2 kind of scope, the App scope (@Singleton), and the unscoped. So even if they are not custom scope, it's important to understand the difference.
+Using @Singleton or using nothing means there is 2 kind of scope, the App scope (@Singleton), and the unscoped. So even if they are not custom scope, it's important to understand the difference.
 
 ## Pros & Cons
 
-- RAM usage
+Pros:
+- Easy to understand for newcomers, no time spent trying to understand how the Dagger class binding is working on where I should write my modules and sub-components.
+- Almost no boilerplate, so super easy to maintain (actually it's closed to cost 0 for my current project).
 
+Cons:
+- RAM usage: you'll keep Singleton annotated classes probably longer than what is strictly required. 
+As a team of 7 Android developers at Betclic, we are working on a 150k LoC sport betting application installed on 400k+ devices displaying thousands of matches, animating betting odds updates in realtime. We have a 99.9% crash free, and the 0.1% crashes are not related to memory issues, so I don't think it matters that much.
+- No scoping: you'll have to clean the data in your Singletons when it's not used anymore, instead of just dropping a sub-component. (example in FAQ)
 
 ## FAQ
 
