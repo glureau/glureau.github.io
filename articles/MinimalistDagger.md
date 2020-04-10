@@ -2,9 +2,9 @@
 
 Dagger 2 is often considered as too much complex for reasons, this article will try to propose a really simple approach limiting complexity and learning curve for newcomers.
 
-It purposefully skip a lot of details, because I consider most of the details have a bad complexity/gain ratio, but we'll go further on this point on next articles.
+I purposefully skip a lot of details, because I consider most of the details have a bad complexity/gain ratio, but we'll go further on this point on next articles.
 
-Let's starts with the annotations I need to know and how to implement. Then I'll define the pros and cons of the solution.
+Let's starts with the annotations you need to know and how to implement. Then I'll define the pros and cons of the solution.
 
 
 ## Annotations
@@ -149,11 +149,13 @@ Using @Singleton or using nothing means there is 2 kind of scope, the App scope 
 Pros:
 - Easy to understand for newcomers, no time spent trying to understand how the Dagger class binding is working on where I should write my modules and sub-components.
 - Almost no boilerplate, so super easy to maintain (actually it's closed to cost 0 for my current project).
+- A big improvement for the team moral, no more time spend trying to understand generated code.
 
 Cons:
 - RAM usage: you'll keep Singleton annotated classes probably longer than what is strictly required. 
 As a team of 7 Android developers at Betclic, we are working on a 150k LoC sport betting application installed on 400k+ devices displaying thousands of matches, animating betting odds updates in realtime. We have a 99.9% crash free, and the 0.1% crashes are not related to memory issues, so I don't think it matters that much.
 - No scoping: you'll have to clean the data in your Singletons when it's not used anymore, instead of just dropping a sub-component. (example in FAQ)
+- Singleton or manual injection when you need to share some data or ViewModels: if using Singleton, they could be poorly implemented and hold some data related to a specific page. Good practices need to be in place to avoid that.
 
 ## FAQ
 
