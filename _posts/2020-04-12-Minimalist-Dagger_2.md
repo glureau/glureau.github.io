@@ -1,6 +1,5 @@
 ---
 title: "Minimalist Dagger"
-subtitle: "How to make Dagger as simple as Koin"
 date: 2020-04-12
 layout: post
 tags: dagger

@@ -1,26 +1,6 @@
 ---
-layout: default
+layout: home
+background: "/pictures/angela-compagnone-4Iyg6cNU7sI-unsplash.jpg"
 ---
 
-
-<div class="home">
-  <h1 class="page-heading">Posts</h1>
-
-  <ul class="post-list">
-    {% for post in site.posts %}
-      <li>
-        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
-
-        <h2>
-          <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
-        </h2>
-      </li>
-    {% endfor %}
-  </ul>
-
-  <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | prepend: site.baseurl }}">via RSS</a></p>
-
-  
-  <p class="post-link">Download my <a href="/about/CV_GregoryLureau.pdf">CV</a></p>
-
-</div>
+  <p class="rss-subscribe">Get notified of my new articles <a href="{{ "/feed.xml" | prepend: site.baseurl }}">via RSS</a></p>
