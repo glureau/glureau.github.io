@@ -17,6 +17,11 @@ fi
 
 echo "Started deploying"
 
+mkdir deployment-in-progress
+cd deployment-in-progress
+remoteUrl=$(git config --get remote.origin.url)
+git clone --depth=1 --branch=develop $remoteUrl .
+
 # Checkout master branch.
 if [ `git branch | grep master` ]
 then
@@ -25,6 +30,7 @@ fi
 git checkout -b master
 
 # Build site.
+bundle install
 yarn install --modules-folder ./_assets/yarn
 bundle exec jekyll build
 
@@ -39,8 +45,8 @@ git commit --allow-empty -m "$(git log -1 --pretty=%B) [ci skip]"
 git push -f -q origin master
 
 # Move back to previous branch.
-git checkout -
-yarn install --modules-folder ./_assets/yarn
+cd ..
+rm -Rf deployment-in-progress
 
 echo "Deployed Successfully!"
 
