@@ -1,3 +1,4 @@
+name: Grégory Lureau
 title: Grégory Lureau
 author: Grégory Lureau
 email: gregorylureau@gmail.com
@@ -8,6 +9,7 @@ baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: glureau
 github_username:  glureau
+permalink: pretty
 
 # Build settings
 markdown: kramdown
@@ -17,26 +19,37 @@ paginate_path: "/posts/page:num/"
 theme: jekyll-theme-clean-blog
 #theme: jekyll-theme-mdui
 #theme: minima
+
+
+assets:
+  plugins:
+    css: { autoprefixer: {}}
+    img: { optim: {}}
+  source_maps: false
+  sources:
+    - _assets/javascripts
+    - _assets/stylesheets
+    - _assets/yarn
+
+exclude:
+  - .travis.yml
+  - bin/*
+  - circle.yml
+  - Gemfile
+  - Gemfile.lock
+  - package.json
+  - README.md
+  - yarn.lock
+  - repos/*
+  - vendor/bundle
+
+#ga_analytics: # Add Google Analytics tracking code
+
 plugins:
   - jekyll-feed
   - jekyll-paginate
+  - jekyll-assets
   - jekyll-sitemap
   - jekyll-gist
-  - jekyll-seo-tag
-  - kickster
+  - jekyll-include-cache
 
-
-# Exclude from processing.
-# The following items will not be processed, by default. Create a custom list
-# to override the default setting.
-# exclude:
-#   - Gemfile
-#   - Gemfile.lock
-#   - node_modules
-#   - vendor/bundle/
-#   - vendor/cache/
-#   - vendor/gems/
-#   - vendor/ruby/
-exclude:
-    - repos
-    - vendor/bundle/
