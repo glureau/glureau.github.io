@@ -6,7 +6,7 @@ description:
   Some personnal Android developer notes.</br>
   Hope it can help or give you some fresh ideas ;)
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
+url: "https://glureau.github.io/" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: glureau
 github_username:  glureau
 permalink: pretty

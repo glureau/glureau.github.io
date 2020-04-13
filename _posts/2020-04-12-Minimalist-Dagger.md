@@ -5,7 +5,7 @@ date: 2020-04-12
 layout: post
 tags: dagger
 author: Grégory Lureau
-background: "../../../pictures/samantha-gades-BlIhVfXbi9s-unsplash.jpg"
+background: "/pictures/samantha-gades-BlIhVfXbi9s-unsplash.jpg"
 ---
 
 Dagger 2 is often considered as too much complex for reasons, this article will try to propose a really simple approach limiting complexity and learning curve for newcomers.
