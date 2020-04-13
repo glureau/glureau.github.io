@@ -22,8 +22,22 @@
   <link rel="alternate" type="application/rss+xml" title="{{ site.title | escape }}" href="{{ "/feed.xml" | relative_url }}">
 
   <style type="text/css">
-    .gist {max-height: 500px;}
-    .gist-file
-    .gist-data {max-height: 500px;}
+    .gist .csv-data  {
+      overflow:auto;
+      max-height:350px;
+    }
+
+    .gist .file {
+      max-height:400px;
+      overflow:auto !important;
+    }
+
+    .gist .type-csv {
+      overflow:hidden !important;
+    }
+
+    .img {
+      max-height:400px;
+    }
   </style>
 </head>

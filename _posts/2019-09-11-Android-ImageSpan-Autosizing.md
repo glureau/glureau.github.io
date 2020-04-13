@@ -31,6 +31,7 @@ As it's fully constrained horizontally, it's recommended to use `layout_width="0
 
 <script src="https://gist.github.com/glureau/149b9e325d196872439534f6e532de2a.js"></script>
 
+
 ![](/pictures/Android-ImageSpan-Autosizing-1.png)
 
 Did I miss something? Oh yes, the autosizing takes all the place available on BOTH axes. Here it has more space on the horizontal axis, but on the vertical axis it's limited by our `wrap_content`…
@@ -44,11 +45,11 @@ Makes sense but not helpful, I wish we could select a type `horizontal` instead 
 
 Well ok, let's forget the height for now and include the picture with ImageSpan, so we have all elements for the compute.
 
-# INCLUDE GIST
+<script src="https://gist.github.com/glureau/f56821d26c1cfe095e305d708ac9bc62.js"></script>
 
 ![](/pictures/Android-ImageSpan-Autosizing-3.png)
 
-ImageSpan constructor offers a 2nd parameter to align your ImageSpan, but it align the bottom of the picture with the bottom or the baseline of the font. Here I want to align on the baseline but also align the top of the picture with the ascent. (If you want a [nice explanation about baseline/ascent/descent](https://proandroiddev.com/android-and-typography-101-5f06722dd611).)
+ImageSpan constructor offers a 2nd parameter to align your ImageSpan, but it aligns the bottom of the picture with the bottom or the baseline of the font. Here I want to align on the baseline but also align the top of the picture with the ascent. (If you want a [nice explanation about baseline/ascent/descent](https://proandroiddev.com/android-and-typography-101-5f06722dd611).)
 
 -----------------------
 
@@ -103,14 +104,14 @@ Some things to know about this class:
 
 Anyway, too much time spent to align 3 texts and an image, we need a solution, so go for Reflection as the support library does the same.
 
-# INCLUDE GIST
+<script src="https://gist.github.com/glureau/22baba67dbf24952cfda922c659d0b23.js"></script>
 
 A simple copy paste of the 2 methods and I'm able to get the available size computed by the autosize mechanism.
 
 Now that we have the computed value, let's see the interesting part, the `suggestedSizeFitsInSpace` that we need to modify for our needs
 
 
-# INCLUDE GIST
+<script src="https://gist.github.com/glureau/39eb458f651a509f7a40af6c2268cb63.js"></script>
 
 So 2 problems here: 
 - it's computing the height overflow and I don't care
@@ -123,7 +124,7 @@ Advantage of this approach, no code modification of the original method, so I kn
 For the 2nd problem, I need to update the original code, so just after the `setTextSize(suggestedSizeInPx)` I add this line of code:
 `alignImageToText(tempTextPaint, drawableHeightComputeMode)`
 
-# INCLUDE GIST
+<script src="https://gist.github.com/glureau/e077c31f50a39101c04ac9221eb90086.js"></script>
 
 I copy pasted the binary search of the AppCompat library, since we add an additional parameter the underneath method wasn't easily re-usable.
 
@@ -140,11 +141,11 @@ So we need to enable > compute > disable > setSize, and if the method is called 
 
 That's unfortunate as we've moved to an extension function implementation, now we need to store value to the TextView, and we cannot add/store value via Reflection, and I don't like overriding TextView as it's quickly not scalable. So here is a quick hack: we use a WeakReference on the view itself, and then compare the view to restore the previous values.
 
-# INCLUDE GIST
+<script src="https://gist.github.com/glureau/21127dbcbb630336dc90c144ae502852.js"></script>
 
 Ok so let's have a look at the final extension function now:
 
-# INCLUDE GIST
+<script src="https://gist.github.com/glureau/3ee4bba9a36fcf87e09467eb4e679b01.js"></script>
 
 
 # Final result
@@ -152,4 +153,4 @@ Ok so let's have a look at the final extension function now:
 ![](/pictures/Android-ImageSpan-Autosizing-0.png)
 
 As you can notice, we're clearly not done yet, the custom font is not loaded (but there is enough tutorial about that), there is too much space between lines (next article maybe?)… BUT for this first article, the left and right are aligned, the picto is adjusted, and the final implementation re-use autosize parameters and doesn't consume many more resources than a standard autosize.
-You can grab the full code from this sandbox project: https://github.com/glureau/atvasis
+You can grab the full code from this sandbox project: <https://github.com/glureau/atvasis>
