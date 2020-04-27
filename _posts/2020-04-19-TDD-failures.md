@@ -17,7 +17,7 @@ Why?
 
 Personally, there were some reasons... or feelings to be right:
 - Bad reputation "TDD is hard to do right", "if you don't do TDD right, it will only increase your dev time"
-- I don't know yet what the system is supposed to do, so I can't write tests firsts.
+- I don't always know what the system is supposed to do, so I can't write tests firsts.
 - When I add unit-tests before I refactor, I have to rewrite most of the tests anyway, so they are not really safer if wrote first.
 - 100% code coverage looks bad. When I have a data class, or a wrapper, the code is so dummy than the tests are just verbosity. (We don't consider test coverage based on which parts is more likely to have bugs or be refactored, we just want coverage everywhere.)
 - Each time I had to change some piece of code that has good coverage, the self-documentation was unclear, because it was more about what is going on, then why is this required in the first place.

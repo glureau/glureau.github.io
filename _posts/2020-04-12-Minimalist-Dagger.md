@@ -31,7 +31,7 @@ For the basic needs we'll only use:
 
 **@Component** : to define a component that will contains every dependencies
 
-**@Module** : to define how to create instances that doesn't belong to our code. A classic example is for creating an ohttp instance.
+**@Module** : to define how to create instances that doesn't belong to our code. A classic example is for creating an okhttp instance.
 
 ## Implementation strategy
 
