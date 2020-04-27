@@ -31,7 +31,7 @@ For the basic needs we'll only use:
 
 **@Component** : to define a component that will contains every dependencies
 
-**@Module** : to define how to create instances that doesn't belong to our code. A classic example is for creating an okhttp instance.
+**@Module** + **@Provides** : to define how to create instances that doesn't belong to our code. A classic example is for creating an okhttp instance.
 
 ## Implementation strategy
 
@@ -152,8 +152,8 @@ Using **@Singleton** or using nothing means there is 2 kind of scope, the App sc
 ## Pros & Cons
 
 Pros:
-- Easy to understand for newcomers, no time spent trying to understand how the Dagger class binding is working on where I should write my modules and sub-components.
-- Almost no boilerplate, so super easy to maintain (actually it's closed to cost 0 for my current project).
+- Easy to understand for newcomers, no time spent trying to understand how the Dagger class binding is working or where I should write my modules and sub-components.
+- No boilerplate, so super easy to maintain (actually it's closed to cost 0 for my current project).
 - A big improvement for the team moral, no more time spend trying to understand generated code.
 
 Cons:
