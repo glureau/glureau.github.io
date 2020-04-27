@@ -19,11 +19,9 @@ I purposefully skip a lot of details, because I consider most of the details hav
 
 Developed with Java, this set of annotations define how to declare DI and contains:
 
-@Inject : Applied to a constructor or a field, it indicates this dependency will be provided sometimes
+**@Inject** : Applied to a constructor or a field, it indicates this dependency will be provided sometimes
 
-@Singleton : Applied to a class, when you want to have only one instance of it.
-
-(@Named : When we need to deal with multiple instances of the same type, for example multiple okhttp clients. You may not need it.)
+**@Singleton** : Applied to a class, when you want to have only one instance of it.
 
 This de-facto library only declare annotations, it doesn't need apt/kapt so doesn't have any build time cost and is very lightweight. You can use these annotations with other libraries than Dagger, so having them in your code doesn't mean you are coupled to Dagger. So you'll be able to change to another JSR-330 compatible DI (eg. Kodein) when you want to, without modifying all your classes.
 
@@ -31,9 +29,9 @@ This de-facto library only declare annotations, it doesn't need apt/kapt so does
 
 For the basic needs we'll only use:
 
-@Component : to define a component that will contains every dependencies
+**@Component** : to define a component that will contains every dependencies
 
-@Module : to define how to create instances that doesn't belong to our code. A classic example is for creating an ohttp instance.
+**@Module** : to define how to create instances that doesn't belong to our code. A classic example is for creating an ohttp instance.
 
 ## Implementation strategy
 
@@ -149,7 +147,7 @@ In this case, a few options:
 - Detect the restoration and reload your application to the default screen (startActivity with a flag to clear all other activies, and restart from a clean state).
 The latter is great for little teams or projects that don't want to spend too much time on data migration and tests. The first option will provide a better user experience in thoses cases.
 
-Using @Singleton or using nothing means there is 2 kind of scope, the App scope (@Singleton), and the unscoped. So even if they are not custom scope, it's important to understand the difference.
+Using **@Singleton** or using nothing means there is 2 kind of scope, the App scope (**@Singleton**), and the unscoped. So even if they are not custom scope, it's important to understand the difference.
 
 ## Pros & Cons
 
@@ -172,13 +170,24 @@ Post a comment and I'll try to provide a proper response in this article.
 
 Doing that with DI is complex, but you can easily have a @Singleton class that will handle that, for example :
 
-@Singleton class UserManager @Inject() {
-	var user: User? = null
-	fun login(u: User) { user = u }
-    fun logout() { user = null }
-}
+	@Singleton class UserManager @Inject() {
+		var user: User? = null
+		fun login(u: User) { user = u }
+		fun logout() { user = null }
+	}
 
 The main implication is that you need to know when you use or don't use it anymore.
+
+### I have multiple instances of the same class that I want to inject.
+
+Can happen in some projects, like for example a couple of okhttp client instances with distinct setup.
+
+If you encounter this specific case, you will have to define a Module to provide instances, and on the provide method add a simple **@Named("some_name")**. Now when you need to inject one specific instance, you'll simply add the @Named annotation on the field:
+
+	class MyClass @Inject(
+		@Named("public") private val httpClient: OkHttpClient
+	)
+
 
 ## Related articles & videos
 
