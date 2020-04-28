@@ -20,7 +20,6 @@ theme: jekyll-theme-clean-blog
 #theme: jekyll-theme-mdui
 #theme: minima
 
-
 assets:
   plugins:
     css: { autoprefixer: {}}

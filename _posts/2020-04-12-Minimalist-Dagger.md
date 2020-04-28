@@ -39,52 +39,57 @@ Scopes and multi components are complex to deal with, and can lead to subtle err
 
 If you need an instance of an object and you don't care about sharing it, just use @Inject on the class constructor you want to inject and where you need the dependency.
 
-	class SteeringWheel @Inject constructor() {
-		// Use @Inject on an empty constructor will define to your DI library how to create the class.
-		// The other way to do it is to create a Module, but that's more verbose and coupling with Dagger, we don't want that.
-	}
+```kotlin
+class SteeringWheel @Inject constructor() {
+	// Use @Inject on an empty constructor will define 
+	// to your DI library how to create the class.
+}
 
-	class Car @Inject constructor(val steeringWheel: SteeringWheel) {
-		// When creating a car, your DI library will create a new SteeringWheel.
-	}
-
+class Car @Inject constructor(val steeringWheel: SteeringWheel) {
+	// When creating a car, your DI library will create a new SteeringWheel.
+}
+```
 
 If you need to keep something for all the application run, you just have to add @Singleton on the shared class:
 
-	@Singleton
-	class World @Inject constructor() {
-		val createdCityCount = AtomicInt(0)
-		// Only one instance will be created (more on that later).
-	}
+```kotlin
+@Singleton
+class World @Inject constructor() {
+	val createdCityCount = AtomicInt(0)
+	// Only one instance will be created (more on that later).
+}
 
-	class City @Inject constructor(val world: World) {
-		// When creating multiple cities, all cities will be created with the same world instance.
-		init {
-			world.createdCityCount.increment()
-		}
+class City @Inject constructor(val world: World) {
+	// When creating multiple cities, all cities will be created with the same world instance.
+	init {
+		world.createdCityCount.increment()
 	}
-
+}
+```
 
 ## Implementation
 
 First you need to define a Component for the application, to access your dependencies.
 
-	@Singleton
-	@Component
-	interface AppComponent {
-	    // List all the classes where you want to inject fields (not required when injecting via constructor)
-	    // Can also add accessor to singleton objects if required.
-	}
+```kotlin
+@Singleton
+@Component
+interface AppComponent {
+    // List all the classes where you want to inject fields (not required when injecting via constructor)
+    // Can also add accessor to singleton objects if required.
+}
+```
 
 And a way to access the component from everywhere when injecting fields:
 
-	class MyApplication : Application() { // Update your manifest accordingly if you created this new Application class
-	    val component = DaggerAppComponent.create()
-	}
+```kotlin
+class MyApplication : Application() { // Update your manifest accordingly if you created this new Application class
+    val component = DaggerAppComponent.create()
+}
 
-	val Fragment.injector: AppComponent
-	    get() = (requireActivity().application as MyApplication).component
-
+val Fragment.injector: AppComponent
+    get() = (requireActivity().application as MyApplication).component
+```
 
 You're good to go!
 
@@ -92,38 +97,43 @@ You're good to go!
 
 Let's define a Singleton:
 
-	@Singleton
-	class NotificationManager @Inject constructor() {
-	    val count: Int = 0
-	}
+```kotlin
+@Singleton
+class NotificationManager @Inject constructor() {
+    val count: Int = 0
+}
+```
 
 An unscoped ViewModel:
 
-	class DashboardViewModel @Inject constructor() {
-	    val text: String = "Dashboard"
-	}
+```kotlin
+class DashboardViewModel @Inject constructor() {
+    val text: String = "Dashboard"
+}
+```
 
 Now when using a fragment, you can do :
 
-	class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
-	    
-	    @Inject
-	    protected lateinit var notification: NotificationManager
-	    @Inject
-	    protected lateinit var viewModel: DashboardViewModel
-	    
-	    override fun onCreate(savedInstanceState: Bundle?) {
-	        super.onCreate(savedInstanceState)
-	        injector.inject(this)
-	    }
+```kotlin
+class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
+    
+    @Inject
+    protected lateinit var notification: NotificationManager
+    @Inject
+    protected lateinit var viewModel: DashboardViewModel
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        injector.inject(this)
+    }
 
-	    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-	        super.onViewCreated(view, savedInstanceState)
-	        val textView: TextView = view.findViewById(R.id.text_dashboard)
-	        textView.text = viewModel.text + " (notif=" + notification.count + ")"
-	    }
-	}
-
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val textView: TextView = view.findViewById(R.id.text_dashboard)
+        textView.text = viewModel.text + " (notif=" + notification.count + ")"
+    }
+}
+```
 
 ## Things to keep in mind
 
@@ -132,18 +142,20 @@ Singletons are not Java static classes nor Kotlin **object**s. They are unique o
 Singletons are created lazily, that means they are instantiated when required only. If you define a singleton with a behaviour in the constructor but no one refers to it, this class will never be created, and the code in construtor will never run. 
 A simple workaround can be to add a line in your application to trigger the lazy resolution. 
 
-	class MyApplication : Application() {
-	    val component = DaggerAppComponent.create()
-	    init {
-	    	component
-	    }
-	}
+```kotlin
+class MyApplication : Application() {
+    val component = DaggerAppComponent.create()
+    init {
+    	component
+    }
+}
+```
 
 Once instantiated, a Singleton will never be released, unless the app is terminated (crash, process killed manually or by the OS).
 
 If the process crash (low memory -> Android decides to kill your process), the data in Singletons (or even Java static classes/kotlin objects) are lost, BUT the backstack (Activities/Fragments) are saved automatically by the OS. So if you do nothing, when the app restore a screen, it will start with a new Singleton. As a consequence, you should not rely on the fact that you came from another screen that has passed the data to a singleton to retrieve it.
 In this case, a few options:
-- Store the states you want to reload (onSaveInstanceState/SharedPreferences/Database/SavedStateHandle/...)
+- Store the states you want to reload (onSaveInstanceState / SharedPreferences / Database / SavedStateHandle / ...)
 - Detect the restoration and reload your application to the default screen (startActivity with a flag to clear all other activies, and restart from a clean state).
 The latter is great for little teams or projects that don't want to spend too much time on data migration and tests. The first option will provide a better user experience in thoses cases.
 
@@ -161,6 +173,11 @@ Cons:
 As a team of 7 Android developers at Betclic, we are working on a 150k LoC sport betting application installed on 400k+ devices displaying thousands of matches, animating betting odds updates in realtime. We have a 99.9% crash free, and the 0.1% crashes are not related to memory issues, so I don't think it matters that much.
 - No scoping: you'll have to clean the data in your Singletons when it's not used anymore, instead of just dropping a sub-component. (example in FAQ)
 - Singleton or manual injection when you need to share some data or ViewModels: if using Singleton, they could be poorly implemented and hold some data related to a specific page. Good practices need to be in place to avoid that.
+<br/>
+<br/>
+<br/>
+
+-----
 
 ## FAQ
 
@@ -170,11 +187,13 @@ Post a comment and I'll try to provide a proper response in this article.
 
 Doing that with DI is complex, but you can easily have a @Singleton class that will handle that, for example :
 
-	@Singleton class UserManager @Inject() {
-		var user: User? = null
-		fun login(u: User) { user = u }
-		fun logout() { user = null }
-	}
+```kotlin
+@Singleton class UserManager @Inject() {
+	var user: User? = null
+	fun login(u: User) { user = u }
+	fun logout() { user = null }
+}
+```
 
 The main implication is that you need to know when you use or don't use it anymore.
 
@@ -184,11 +203,14 @@ Can happen in some projects, like for example a couple of okhttp client instance
 
 If you encounter this specific case, you will have to define a Module to provide instances, and on the provide method add a simple **@Named("some_name")**. Now when you need to inject one specific instance, you'll simply add the @Named annotation on the field:
 
-	class MyClass @Inject(
-		@Named("public") private val httpClient: OkHttpClient
-	)
-
+```kotlin
+class MyClass @Inject(
+	@Named("public") private val httpClient: OkHttpClient
+)
+```
 
 ## Related articles & videos
 
-https://www.youtube.com/watch?time_continue=28&v=9fn5s8_CYJI&feature=emb_logo
+<div class="youtube-container">
+	<iframe width="560" height="315" src="https://www.youtube.com/embed/9fn5s8_CYJI" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
