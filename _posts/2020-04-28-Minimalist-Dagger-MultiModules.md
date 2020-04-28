@@ -1,14 +1,14 @@
 ---
 title: "Minimalist Dagger for multi-modules"
 subtitle: "How to make Dagger as simple as Koin, even with multiple modules."
-date: 2020-04-30
+date: 2020-04-28
 layout: post
 tags: dagger
 author: Grégory Lureau
 background: "/pictures/samantha-gades-BlIhVfXbi9s-unsplash.jpg"
 ---
 
-This article is the following of the (Minimalist Dagger)[../2020-04-12-Minimalist-Dagger] for monolithic app, I'll start from there.
+This article is the following of the [Minimalist Dagger](/2020/04/12/Minimalist-Dagger) for monolithic app, I'll start from there.
 
 ---
 
@@ -72,23 +72,23 @@ Last piece of this pattern, you need to update your AppComponent to give the abi
 
 Here too, the main component will grow a bit for each new modules. If you've hundreds of them, you could totally group them by meta features for example, it's pure interface Kotlin, you can be creative.
 
-# Ask for dependencies
 
-Similar to the 1st article, you just need to declare what you want in your constructor, no change here:
+# Injecting
+
+No changes when you want to inject via constructor.
 
 	class Car @Inject constructor(val steeringWheel: SteeringWheel) {
 	}
 
-
-# Injecting
+But if for example you want to inject fields in a Fragment from the Login module, you'll have to pick the module injector like this:
 
 	class LoginFragment : Fragment(R.layout.fragment_login) {
 	    @Inject
 	    protected lateinit var viewModel: LoginViewModel
 	 
         override fun onCreate(savedInstanceState: Bundle?) {
-	        super.onCreate(savedInstanceState)
 	        loginInjector().inject(this)
+	        // ...
 	    }
 	    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 	        super.onViewCreated(view, savedInstanceState)
@@ -140,15 +140,15 @@ So you can keep your code & dependencies grouped in each well-defined module, an
 
 ## Pros & Cons
 
-Pros&Cons are similar to the (mono-module implementation)[../2020-04-12-Minimalist-Dagger], but some differences:
+Pros&Cons are similar to the [mono-module implementation](/2020/04/12/Minimalist-Dagger), but some differences:
 
-Pros:
+#### Pros:
 - Build time avoided on the Dagger-free submodules (good for unit-tests especially if you don't use Dagger in them, like me).
 - Interface inheritance is way easier to understand than Dagger subcomponents.
 - Dagger-free modules, this is exactly what Dependency Injection should look like\*.
 - Dagger code is in less files, so changing the DI library is way more affordable than when using extensively Dagger2 subcomponents.
 
-Cons:
+#### Cons:
 - build time still paid when building the app (unless you want to try Dagger2 reflect, you have to pay code generation price anyway)
 
 \* Imagine a library based on Dagger that requires you to provide some stuff through Dagger mechanism, or ask you to add a **@Modules** in your main component.

@@ -20,6 +20,10 @@ theme: jekyll-theme-clean-blog
 #theme: jekyll-theme-mdui
 #theme: minima
 
+kramdown:
+  syntax_highlighter_opts:
+    default_lang: kotlin
+
 assets:
   plugins:
     css: { autoprefixer: {}}
@@ -29,6 +33,7 @@ assets:
     - _assets/javascripts
     - _assets/stylesheets
     - _assets/yarn
+
 
 exclude:
   - .travis.yml
@@ -51,4 +56,3 @@ plugins:
   - jekyll-sitemap
   - jekyll-gist
   - jekyll-include-cache
-
