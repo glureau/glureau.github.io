@@ -1,7 +1,6 @@
 ---
 title: "Minimalist Dagger for multi-modules"
 subtitle: "How to make Dagger as simple as Koin, even with multiple modules."
-date: 2020-04-28
 layout: post
 tags: dagger
 author: Grégory Lureau

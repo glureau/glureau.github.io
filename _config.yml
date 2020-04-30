@@ -3,10 +3,10 @@ title: Grégory Lureau
 author: Grégory Lureau
 email: gregorylureau@gmail.com
 description:
-  Some personnal Android developer notes.</br>
-  Hope it can help or give you some fresh ideas ;)
+  Android developer, Kotlin fan, Rx lover</br>
+  Feel free to contact me for anything.
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "https://glureau.github.io/" # the base hostname & protocol for your site, e.g. http://example.com
+url: "https://www.glureau.com" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: glureau
 github_username:  glureau
 permalink: pretty
