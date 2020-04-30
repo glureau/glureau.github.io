@@ -188,9 +188,9 @@ If you encounter this specific case, you will have to define a Module to provide
 		@Named("public") private val httpClient: OkHttpClient
 	)
 
+### Can I really keep this minimalism in a multi-module architecture?
 
-<blockquote class="reddit-card" data-card-created="1588108066"><a href="https://www.reddit.com/r/androiddev/comments/g9vng9/just_started_my_blog_and_wanted_to_share_with_you/">Just started my blog and wanted to share with you these 2 articles to setup a minimalist Dagger approach for multi-modules app. Any feedback greatly appreciated! https://www.glureau.com/2020/04/12/Minimalist-Dagger/</a> from <a href="http://www.reddit.com/r/androiddev">r/androiddev</a></blockquote>
-<script async src="//embed.redditmedia.com/widgets/platform.js" charset="UTF-8"></script>
+[Sure you can!](/2020/04/28/Minimalist-Dagger-MultiModules/)
 
 <br/>
 <br/>
@@ -200,7 +200,7 @@ If you encounter this specific case, you will have to define a Module to provide
 
 ## Related articles & videos
 
-Discovered this nice video while writing this video, great content!
+Discovered this nice video while writing this article, great content!
 <div class="youtube-container">
 	<iframe width="560" height="315" src="https://www.youtube.com/embed/9fn5s8_CYJI" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>

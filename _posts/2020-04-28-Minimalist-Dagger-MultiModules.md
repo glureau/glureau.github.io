@@ -160,5 +160,3 @@ With this approach your modules can be Dagger-free, while still using Dagger 2 t
 
 Post a comment and I'll try to provide a proper response in this article.
 
-<blockquote class="reddit-card" data-card-created="1588108066"><a href="https://www.reddit.com/r/androiddev/comments/g9vng9/just_started_my_blog_and_wanted_to_share_with_you/">Just started my blog and wanted to share with you these 2 articles to setup a minimalist Dagger approach for multi-modules app. Any feedback greatly appreciated! https://www.glureau.com/2020/04/12/Minimalist-Dagger/</a> from <a href="http://www.reddit.com/r/androiddev">r/androiddev</a></blockquote>
-<script async src="//embed.redditmedia.com/widgets/platform.js" charset="UTF-8"></script>
