@@ -19,7 +19,7 @@ Just as a remember, the basic use case:
 
 Here the `doSometing` method is called on one of the thread of the Schedulers.io().
 
-# subscribeOn + observeOn
+# Puzzle 1 - subscribeOn + observeOn
 
     Observable.just("item")
         .observeOn(Schedulers.io())
@@ -42,7 +42,7 @@ IO - the subscribeOn operator impacts the start of the stream, until an observeO
 
 ---
 
-# Multiple subscribeOn
+# Puzzle 2 - 2 subscribeOn
 
     Observable.just("item")
         .subscribeOn(Schedulers.computation())
@@ -65,7 +65,7 @@ Computation - the subscribeOn operator only consider the very first subscribeOn 
 
 ---
 
-# Multiple subscribeOn + doOnSubscribe
+# Puzzle 3 - subscribeOn + 2 doOnSubscribe
 
 `doOnSubscribe` offers the opportunity to react when the subscription occurs... but on which order is it executed?
 
@@ -91,42 +91,7 @@ foo() then bar() - Same order than when you read the stream, convenient... right
 
 ---
 
-What if we add another subscribeOn
-
-    Observable.just("item")
-        .doOnSubscribe { foo() }
-        .subscribeOn(Schedulers.computation())
-        .doOnSubscribe { bar() }
-        .subscribeOn(Schedulers.computation())
-        .subscribe()
-
-A - foo() then bar()
-
-B - bar() then foo()
-
-C - only foo() is executed
-
-D - only bar() is executed
-
-
----
-
-<p style="color:white;">
-bar() then foo() - Opposite order than the previous method! 
-</p>
-
-<p style="color:white;">
-Actually it's not because the 2nd subscribeOn is 'ignored'. You've to think the subscription stream from bottom to top, and the doOnSubscribe like a add to a runnable list. 
-</p>
-
-<p style="color:white;">
-The execution of the subscription starts from the bottom and go up. 1st it reaches a subscribeOn so it switch thread, then id reaches doOnSubscribe { bar() } so it adds bar() in a sort of list. Then it reaches another subscribeOn, and here before changing thread it execute its list (so bar is executed). Once the executable list is empty, it will change again from threads, and eventually execute foo()
-</p>
-
----
-
-
----
+# Puzzle 4 - 2 subscribeOn + 2 doOnSubscribe
 
 What if we add another subscribeOn
 
@@ -148,15 +113,18 @@ D - only bar() is executed
 
 ---
 
+
 <p style="color:white;">
 bar() then foo() - Opposite order than the previous method! 
 </p>
 
 <p style="color:white;">
-Feels lost? Or maybe it's too easy? Ok let's try the next exercices before the solution ;)
+Feel lost? Let's do one more step before the explication
 </p>
 
 ---
+
+# Puzzle 5 - 3 subscribeOn + 2 doOnSubscribe
 
 Let's add another subscribeOn, and think about the threading on which foo() and bar() are executed.
 
@@ -189,10 +157,12 @@ You can think the subscription stream from bottom to top, and the doOnSubscribe 
 </p>
 
 <p style="color:white;">
-The execution of the subscription starts from the bottom and go up. 1st it reaches a subscribeOn so it switch thread, then id reaches doOnSubscribe { bar() } so it adds bar() in a sort of list. Then it reaches another subscribeOn, and here before changing thread it execute its list (so bar is executed). Once the executable list is empty, it will change again from threads, and eventually execute foo()
+The execution of the subscription starts from the bottom and go up. 1st it reaches a subscribeOn so it switch thread, then it reaches doOnSubscribe { bar() } so it adds bar() in a sort of list. Then it reaches another subscribeOn, and here before changing thread it execute its list (so bar is executed). Once the executable list is empty, it will change again from threads, and eventually execute foo()
 </p>
 
 ---
+
+# Puzzle 5 - subscribeOn + timer
 
 Ok, too much lines, let's restart from simple:
 
@@ -220,6 +190,7 @@ Some methods, like timer or interval, takes a 3rd parameter for the scheduler. I
 
 ---
 
+# Puzzle 6 - subscribeOn + Subject
 
 Add some Subject now?
 
@@ -244,14 +215,14 @@ D - doSomething is executed on io
 ---
 
 <p style="color:white;">
-A or D - it depends
+A or D - it depends!
 </p>
 
 <p style="color:white;">
 I've seen this pattern multiple times. The logic behind was  something like 
 </p>
 <p style="color:white;">
-"if all my network calls are done on IO, then I can publish the result in a Subject and observers of the subject will receive items on IO too"
+<< if all my network calls are done on IO, then I can publish the result in a Subject and observers of the subject will receive items on IO too >>
 </p>
 
 <p style="color:white;">

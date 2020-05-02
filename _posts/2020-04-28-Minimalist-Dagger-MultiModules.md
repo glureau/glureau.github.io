@@ -7,7 +7,7 @@ author: Grégory Lureau
 background: "/pictures/samantha-gades-BlIhVfXbi9s-unsplash.jpg"
 ---
 
-This article is the following of the [Minimalist Dagger](/2020/04/12/Minimalist-Dagger) for monolithic app, I'll start from there.
+This article is the following of the [Minimalist Dagger](/2020/04/27/Minimalist-Dagger) for monolithic app, I'll start from there.
 
 ---
 
@@ -155,6 +155,12 @@ It's a main architectural problem because now you cannot change your DI library 
 Fortunately all well-defined libraries avoid that (often by using static entry point or manual instanciation).
 
 With this approach your modules can be Dagger-free, while still using Dagger 2 to build your dependency graph.
+
+
+# Showcase project
+
+[glureau/MinimalistDaggerMultiModules](https://github.com/glureau/MinimalistDaggerMultiModules/)
+
 
 ## FAQ
 
