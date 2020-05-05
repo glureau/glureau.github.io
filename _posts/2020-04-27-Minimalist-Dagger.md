@@ -133,7 +133,7 @@ A simple workaround can be to add a line in your application to trigger the lazy
     class MyApplication : Application() {
         val component = DaggerAppComponent.create()
         init {
-            component
+            component.getMySingleton()
         }
     }
 
