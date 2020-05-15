@@ -4,7 +4,7 @@ subtitle: "All new shiny libraries are not good for all projects, it has to resp
 layout: post
 tags: jetpack mvvm viewmodel
 author: Grégory Lureau
-background: "/pictures/samantha-gades-BlIhVfXbi9s-unsplash.jpg"
+background: "/pictures/barn-images-t5YUoHW6zRo-unsplash.jpg"
 ---
 
 **Adding a new library to a production project should always be done with extra care.**
