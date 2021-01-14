@@ -9,4 +9,4 @@
 
 - Epoxy + ViewBinding (without kapt)
 
-- ktlint custom rules
+- Flip card animation
