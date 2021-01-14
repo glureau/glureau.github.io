@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-151373304-1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-151373304-1');
+	</script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>
+    TDD failures? - Grégory Lureau
+    
+  </title>
+
+  <meta name="description" content="In 10 years of being a developer, I attended multiple “TDD” dojos. They were all great, trying to push some good practices like: Tests first Red/Green/Refact...">
+
+  <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="/assets/vendor/bootstrap/css/bootstrap.min.css">
+
+  <link rel="stylesheet" href="/assets/vendor/fontawesome-free/css/all.min.css">
+
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="/syntax.css">
+  <link rel="canonical" href="https://www.glureau.com/2020/04/19/TDD-failures/">
+  <link rel="alternate" type="application/rss+xml" title="Grégory Lureau" href="/feed.xml">
+
+  <style type="text/css">
+    .gist .csv-data  {
+      overflow:auto;
+      max-height:350px;
+    }
+
+    .gist .file {
+      max-height:400px;
+      overflow:auto !important;
+    }
+
+    .gist .type-csv {
+      overflow:hidden !important;
+    }
+
+    .img {
+      position: relative;
+      max-height: 400px;
+      width: 100%
+    }
+
+    .highlight pre {
+      padding: 16px;
+    }
+
+    .youtube-container{
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%; 
+      height: 0;
+    }
+    .youtube-container iframe{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+table {
+  width: 100%;
+  text-align: center;
+}
+table td, table th {
+  border: 1px solid #FFFFFF;
+  padding: 3px 4px;
+}
+table tr:nth-child(even) {
+  background: #EBEBEB;
+}
+table thead th {
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  border-left: 2px solid #333333;
+}
+table thead th:first-child {
+  border-left: none;
+}
+
+table tfoot td {
+  font-size: 14px;
+}
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand" href="/">Grégory Lureau</a>
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+      Menu
+      <i class="fa fa-bars"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarResponsive">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/posts">Posts</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <!-- Page Header -->
+
+<header class="masthead" style="background-image: url('/pictures/sarah-dorweiler-x2Tmfd1-SgA-unsplash.jpg')">
+  
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 col-md-10 mx-auto">
+          <div class="post-heading">
+            <h1>TDD failures?</h1>
+            
+            <h2 class="subheading">Discovered old videos about TDD and understood why I failed at it... til now!</h2>
+            
+            <span class="meta">Posted by
+              <a href="#">Grégory Lureau</a>
+              on April 19, 2020 &middot; <span class="reading-time" title="Estimated read time">
+  
+   5 mins  read </span>
+
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+
+        <p>In 10 years of being a developer, I attended multiple “TDD” dojos. They were all great, trying to push some good practices like:</p>
+<ul>
+  <li>Tests first</li>
+  <li>Red/Green/Refactor</li>
+  <li>100% code coverage</li>
+  <li>self-documented</li>
+</ul>
+
+<p>But unfortunately, when I spoke to the attendes or even the organizer some days or weeks after that, I discovered that no-one was using TDD in its day-to-day job!</p>
+
+<p>Why?</p>
+
+<p>Personally, there were some reasons… or feelings to be right:</p>
+<ul>
+  <li>Bad reputation “TDD is hard to do right”, “if you don’t do TDD right, it will only increase your dev time”</li>
+  <li>I don’t always know what the system is supposed to do, so I can’t write tests firsts.</li>
+  <li>When I add unit-tests before I refactor, I have to rewrite most of the tests anyway, so they are not really safer if wrote first.</li>
+  <li>100% code coverage looks bad. When I have a data class, or a wrapper, the code is so dummy than the tests are just verbosity. (We don’t consider test coverage based on which parts is more likely to have bugs or be refactored, we just want coverage everywhere.)</li>
+  <li>Each time I had to change some piece of code that has good coverage, the self-documentation was unclear, because it was more about what is going on, then why is this required in the first place.</li>
+  <li>Test code is a copy-cat of the code under test! When using mocks and testing every single lines, tests are just another way to define the code. It’s fine in the way it push against regressions, but it also push against changes. Maybe it’s because I don’t follow Open/Closed principles properly, but it can be hard to know by advance how the code will evolve. Eventually when a lot of the code have to be re-written, the unit tests are just dropped (keeping just the test names to provide a close case coverage).</li>
+  <li>Don’t open your private methods with @VisibleForTesting. You’re breaking the encapsulation to test something that anyway, will never be called this way. (Frankly I’d be better off without this annotation, in my opinion, it’s breaking one of the more important concept of OOP.)</li>
+</ul>
+
+<p>Finally I discovered this talk, thanks to Twitter, and it explained to me why it feels wrong. Spoiler: I’m doing unit test wrong, the dojos were not focused on the more important pieces of TDD.</p>
+
+<p><a href="https://www.youtube.com/watch?v=EZ05e7EMOLM">https://www.youtube.com/watch?v=EZ05e7EMOLM</a></p>
+
+<p>Is TDD Dead? (David Heinemeier Hannson / Martin Fowler / Kent Beck)
+<a href="https://martinfowler.com/articles/is-tdd-dead/">https://martinfowler.com/articles/is-tdd-dead/</a>
+<a href="https://www.youtube.com/watch?v=z9quxZsLcfo">https://www.youtube.com/watch?v=z9quxZsLcfo</a>
+<a href="https://www.youtube.com/watch?v=JoTB2mcjU7w">https://www.youtube.com/watch?v=JoTB2mcjU7w</a>
+<a href="https://www.youtube.com/watch?v=YNw4baDz6WA">https://www.youtube.com/watch?v=YNw4baDz6WA</a>
+<a href="https://www.youtube.com/watch?v=dGtasFJnUxI">https://www.youtube.com/watch?v=dGtasFJnUxI</a></p>
+
+<p>The things I’ll try to remember and apply for now on:</p>
+<ul>
+  <li>“test first” is just a way to do TDD, it applies well to specific case, but it’s clearly not the only way to go. The goal is to have confidence in our code by delivering a test suite, doesn’t matter how we get there.</li>
+  <li>Apply unit test to a higher level, a unit test can imply multiple methods/classes, so refactoring can effectively become easier.</li>
+  <li>Better unit tests means less unit tests (at least on my limited experience)</li>
+  <li>case coverage != code coverage:
+    <ul>
+      <li>Defines UT from business spec, no more no less.</li>
+      <li>Cases defined by the busincess/customer should always work. If some parts of the code can be out of the defined cases: check with business to add a new test acceptance, remove the code, or let it untested.</li>
+      <li>Don’t get obsessed with code coverage.</li>
+    </ul>
+  </li>
+  <li>Architecture should be very cautious about adding indirection/complexity for the sake of testability.</li>
+  <li>Indirection (to be able to test, or induced by a “well-designed architecture”) add complexity and psychological load, making anything harder for the next developer to read/understand/fix/change/improve. So adding tests can actually makes everything worth…</li>
+  <li>A mock that returns a mock that returns a mock…: your class under test relies on other class hierarchy, it’s not good encapsulation and is a smell.</li>
+  <li>“Unit” is not defined <strong>on purpose</strong>. Each team is responsible to define the test style for which is best for the project and the team.</li>
+  <li>(personnal deduction) The psychology of each developer impacts how the code is architectured and if each methodology is applicable or not. Forcing in some ways is not the right approach, but sharing some good practices in the team is indeed critical (for the project and for each developer).</li>
+  <li>coupling directly opposed to cohesion? Nice thought from DHH, need to go deeper on this topic.</li>
+  <li>“Hard to test” often means “bad design”</li>
+  <li>Increase Test fidelity (use case coverage) -&gt; Increase cost of the feature (time to test, maintenance) so should be evaluated cautiously.</li>
+</ul>
+
+<p>As always in developping, all is about trade-off, it’s a difficult balance to adjust all the time.</p>
+
+<p>There is no silver bullet, try new approaches and pick what fit best for you.</p>
+
+
+        <hr>
+        
+
+        <div id="disqus_thread"></div>
+        <script>
+        var disqus_config = function () {
+          this.page.url = "https://www.glureau.com/2020/04/19/TDD-failures/";
+          this.page.identifier = "/2020/04/19/TDD-failures/";
+        };
+
+        (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = 'https://www-glureau-com.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+        })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                                    
+
+        <div class="clearfix">
+
+          
+          <a class="btn btn-primary float-left" href="/2019/09/11/Android-ImageSpan-Autosizing/" data-toggle="tooltip" data-placement="top" title="Android ImageSpan autosizing">&larr; Previous<span class="d-none d-md-inline">
+              Post</span></a>
+          
+          
+          <a class="btn btn-primary float-right" href="/2020/04/27/Minimalist-Dagger/" data-toggle="tooltip" data-placement="top" title="Minimalist Dagger">Next<span class="d-none d-md-inline">
+              Post</span> &rarr;</a>
+          
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+
+<hr>
+
+<footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+        <ul class="list-inline text-center">
+          
+          <li class="list-inline-item">
+            <a href="mailto:gregorylureau@gmail.com">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="far fa-envelope fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+        </ul>
+        <p class="copyright text-muted">Copyright &copy; Grégory Lureau 2021</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+  <script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/vendor/startbootstrap-clean-blog/js/clean-blog.min.js"></script>
+
+<script src="/assets/scripts.js"></script>
+
+
+
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '');
+</script>
+
+
+
+</body>
+
+</html>

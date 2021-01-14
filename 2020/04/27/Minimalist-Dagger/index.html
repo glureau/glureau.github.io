@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-151373304-1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-151373304-1');
+	</script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>
+    Minimalist Dagger - Grégory Lureau
+    
+  </title>
+
+  <meta name="description" content="Dagger 2 is often considered as too complex for reasons, this article will try to propose a really simple approach limiting complexity and easing the learnin...">
+
+  <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="/assets/vendor/bootstrap/css/bootstrap.min.css">
+
+  <link rel="stylesheet" href="/assets/vendor/fontawesome-free/css/all.min.css">
+
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="/syntax.css">
+  <link rel="canonical" href="https://www.glureau.com/2020/04/27/Minimalist-Dagger/">
+  <link rel="alternate" type="application/rss+xml" title="Grégory Lureau" href="/feed.xml">
+
+  <style type="text/css">
+    .gist .csv-data  {
+      overflow:auto;
+      max-height:350px;
+    }
+
+    .gist .file {
+      max-height:400px;
+      overflow:auto !important;
+    }
+
+    .gist .type-csv {
+      overflow:hidden !important;
+    }
+
+    .img {
+      position: relative;
+      max-height: 400px;
+      width: 100%
+    }
+
+    .highlight pre {
+      padding: 16px;
+    }
+
+    .youtube-container{
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%; 
+      height: 0;
+    }
+    .youtube-container iframe{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+table {
+  width: 100%;
+  text-align: center;
+}
+table td, table th {
+  border: 1px solid #FFFFFF;
+  padding: 3px 4px;
+}
+table tr:nth-child(even) {
+  background: #EBEBEB;
+}
+table thead th {
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  border-left: 2px solid #333333;
+}
+table thead th:first-child {
+  border-left: none;
+}
+
+table tfoot td {
+  font-size: 14px;
+}
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand" href="/">Grégory Lureau</a>
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+      Menu
+      <i class="fa fa-bars"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarResponsive">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/posts">Posts</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <!-- Page Header -->
+
+<header class="masthead" style="background-image: url('/pictures/samantha-gades-BlIhVfXbi9s-unsplash.jpg')">
+  
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 col-md-10 mx-auto">
+          <div class="post-heading">
+            <h1>Minimalist Dagger</h1>
+            
+            <h2 class="subheading">How to make Dagger as simple as Koin</h2>
+            
+            <span class="meta">Posted by
+              <a href="#">Grégory Lureau</a>
+              on April 27, 2020 &middot; <span class="reading-time" title="Estimated read time">
+  
+   13 mins  read </span>
+
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+
+        <p>Dagger 2 is often considered as too complex for reasons, this article will try to propose a really simple approach limiting complexity and easing the learning curve for newcomers.</p>
+
+<p>I purposefully skip a lot of details, because I consider most of the details have a bad complexity/gain ratio, but we’ll go further on this point on next articles.</p>
+
+<h2 id="annotations">Annotations</h2>
+
+<h3 id="jsr-330">JSR-330</h3>
+
+<p>Developed with Java, this set of annotations define how to declare DI and contains:</p>
+
+<p><strong>@Inject</strong> : Applied to a constructor or a field, it indicates this dependency will be provided eventually.</p>
+
+<p><strong>@Singleton</strong> : Applied to a class, when you want to have only one instance of it.</p>
+
+<p>This de-facto library only declares annotations, it doesn’t need apt/kapt so it doesn’t have any build time cost and is very lightweight. You can use these annotations with other libraries than Dagger, so having them in your code doesn’t mean you are coupled to Dagger. So you’ll be able to change to another JSR-330 compatible DI library (eg. Kodein) when you want to, without modifying all your classes.</p>
+
+<h3 id="dagger2">Dagger2</h3>
+
+<p>For the basic needs we’ll only use:</p>
+
+<p><strong>@Component</strong> : to define a component that will contain every dependencies</p>
+
+<p><strong>@Module</strong> + <strong>@Provides</strong> : to define how to create instances that don’t belong to our code. A classic example is for creating an okhttp instance.</p>
+
+<h2 id="implementation-strategy">Implementation strategy</h2>
+
+<p>Scopes and multi components are complex to deal with, and can lead to subtle errors. We want to be efficient in what we develop, focus on business logic, not on this kind of errors, so no need to have that complex memory management. That’s it.</p>
+
+<p>If you need an instance of an object and you don’t care about sharing, just use @Inject on the class constructor you want to inject and where you need the dependency.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">SteeringWheel</span> <span class="nd">@Inject</span> <span class="k">constructor</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// Use @Inject on an empty constructor will define </span>
+    <span class="c1">// to your DI library how to create the class.</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="nc">Car</span> <span class="nd">@Inject</span> <span class="k">constructor</span><span class="p">(</span><span class="kd">val</span> <span class="py">steeringWheel</span><span class="p">:</span> <span class="nc">SteeringWheel</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// When creating a car, your DI library will create a new SteeringWheel.</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>If you need to keep an object in memory for the entire application’s lifetime, you just have to add @Singleton on the shared class:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Singleton</span>
+<span class="kd">class</span> <span class="nc">World</span> <span class="nd">@Inject</span> <span class="k">constructor</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">createdCityCount</span> <span class="p">=</span> <span class="nc">AtomicInt</span><span class="p">(</span><span class="m">0</span><span class="p">)</span>
+    <span class="c1">// Only one instance will be created (more on that later).</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="nc">City</span> <span class="nd">@Inject</span> <span class="k">constructor</span><span class="p">(</span><span class="kd">val</span> <span class="py">world</span><span class="p">:</span> <span class="nc">World</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// When creating multiple cities, all cities will be created with the same world instance.</span>
+    <span class="nf">init</span> <span class="p">{</span>
+        <span class="n">world</span><span class="p">.</span><span class="n">createdCityCount</span><span class="p">.</span><span class="nf">increment</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="implementation">Implementation</h2>
+
+<p>First you need to define a Component for the application, to access your dependencies.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Singleton</span>
+<span class="nd">@Component</span>
+<span class="kd">interface</span> <span class="nc">AppComponent</span> <span class="p">{</span>
+    <span class="c1">// List all the classes where you want to inject fields (not required when injecting via constructor)</span>
+    <span class="c1">// Can also add accessor to singleton objects if required.</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>And a way to access the component from everywhere when injecting fields:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">MyApplication</span> <span class="p">:</span> <span class="nc">Application</span><span class="p">()</span> <span class="p">{</span> <span class="c1">// Update your manifest accordingly if you created this new Application class</span>
+    <span class="kd">val</span> <span class="py">component</span> <span class="p">=</span> <span class="nc">DaggerAppComponent</span><span class="p">.</span><span class="nf">create</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="kd">val</span> <span class="py">Fragment</span><span class="p">.</span><span class="n">injector</span><span class="p">:</span> <span class="nc">AppComponent</span>
+    <span class="k">get</span><span class="p">()</span> <span class="p">=</span> <span class="p">(</span><span class="nf">requireActivity</span><span class="p">().</span><span class="n">application</span> <span class="k">as</span> <span class="nc">MyApplication</span><span class="p">).</span><span class="n">component</span>
+</code></pre></div></div>
+
+<p>You’re good to go!</p>
+
+<p>Want to try on a showcase project? <a href="https://github.com/glureau/MinimalistDagger/">glureau/MinimalistDagger</a></p>
+
+<h3 id="an-example">An example</h3>
+
+<p>Let’s define a Singleton:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Singleton</span>
+<span class="kd">class</span> <span class="nc">NotificationManager</span> <span class="nd">@Inject</span> <span class="k">constructor</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">count</span><span class="p">:</span> <span class="nc">Int</span> <span class="p">=</span> <span class="m">0</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>An unscoped ViewModel:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">DashboardViewModel</span> <span class="nd">@Inject</span> <span class="k">constructor</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">text</span><span class="p">:</span> <span class="nc">String</span> <span class="p">=</span> <span class="s">"Dashboard"</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Now when using a fragment, you can do :</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">DashboardFragment</span> <span class="p">:</span> <span class="nc">Fragment</span><span class="p">(</span><span class="nc">R</span><span class="p">.</span><span class="n">layout</span><span class="p">.</span><span class="n">fragment_dashboard</span><span class="p">)</span> <span class="p">{</span>
+    
+    <span class="nd">@Inject</span>
+    <span class="k">protected</span> <span class="k">lateinit</span> <span class="kd">var</span> <span class="py">notification</span><span class="p">:</span> <span class="nc">NotificationManager</span>
+    <span class="nd">@Inject</span>
+    <span class="k">protected</span> <span class="k">lateinit</span> <span class="kd">var</span> <span class="py">viewModel</span><span class="p">:</span> <span class="nc">DashboardViewModel</span>
+    
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onCreate</span><span class="p">(</span><span class="n">savedInstanceState</span><span class="p">:</span> <span class="nc">Bundle</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="nf">onCreate</span><span class="p">(</span><span class="n">savedInstanceState</span><span class="p">)</span>
+        <span class="n">injector</span><span class="p">.</span><span class="nf">inject</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onViewCreated</span><span class="p">(</span><span class="n">view</span><span class="p">:</span> <span class="nc">View</span><span class="p">,</span> <span class="n">savedInstanceState</span><span class="p">:</span> <span class="nc">Bundle</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="nf">onViewCreated</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">savedInstanceState</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">textView</span><span class="p">:</span> <span class="nc">TextView</span> <span class="p">=</span> <span class="n">view</span><span class="p">.</span><span class="nf">findViewById</span><span class="p">(</span><span class="nc">R</span><span class="p">.</span><span class="n">id</span><span class="p">.</span><span class="n">text_dashboard</span><span class="p">)</span>
+        <span class="n">textView</span><span class="p">.</span><span class="n">text</span> <span class="p">=</span> <span class="n">viewModel</span><span class="p">.</span><span class="n">text</span> <span class="p">+</span> <span class="s">" (notif="</span> <span class="p">+</span> <span class="n">notification</span><span class="p">.</span><span class="n">count</span> <span class="p">+</span> <span class="s">")"</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="things-to-keep-in-mind">Things to keep in mind</h2>
+
+<p>Singletons are not Java static classes nor Kotlin <strong>object</strong>s. They are unique only in our Dagger component, so using @Singleton and using a static variable are fundamentally different.</p>
+
+<p>Singletons are lazily created, it means you are delaying their initialization until the first time they are needed. If you define a singleton with a behaviour in the constructor but no one refers to it, this class will never be created, and the code in construtor will never run. 
+A simple workaround can be to add a line in your application to trigger the lazy resolution.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">MyApplication</span> <span class="p">:</span> <span class="nc">Application</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">component</span> <span class="p">=</span> <span class="nc">DaggerAppComponent</span><span class="p">.</span><span class="nf">create</span><span class="p">()</span>
+    <span class="nf">init</span> <span class="p">{</span>
+        <span class="n">component</span><span class="p">.</span><span class="nf">getMySingleton</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Once instantiated, a Singleton will never be released, unless the app is terminated (crash, process killed manually or by the OS).</p>
+
+<p>If the process crash (low memory -&gt; Android decides to kill your process), the data in Singletons (or even Java static classes/kotlin objects) are lost, BUT the backstack (Activities/Fragments) are saved automatically by the OS. So if you do nothing, when the app restore a screen, it will start with a new Singleton. As a consequence, you should not rely on the fact that you came from another screen that has passed the data to a singleton to retrieve it.
+In this case, a few options:</p>
+<ul>
+  <li>Store the states you want to reload (onSaveInstanceState / SharedPreferences / Database / SavedStateHandle / …)</li>
+  <li>Detect the restoration and reload your application to the default screen (startActivity with a flag to clear all other activies, and restart from a clean state).
+The latter is great for little teams or projects that don’t want to spend too much time on data migration and tests. The first option will provide a better user experience in those cases.</li>
+</ul>
+
+<p>Using <strong>@Singleton</strong> or using nothing means there are 2 kind of scope, the App scope (<strong>@Singleton</strong>), and the unscoped. So even if they are not custom scope, it’s important to understand the difference.</p>
+
+<h2 id="pros--cons">Pros &amp; Cons</h2>
+
+<p>Pros:</p>
+<ul>
+  <li>Easy to understand for newcomers, no time spent trying to understand how the Dagger class binding is working or where I should write my modules and sub-components.</li>
+  <li>No boilerplate, so it’s super easy to maintain (actually it’s free on our project).</li>
+  <li>A big improvement for the team moral, no more time spent trying to understand generated code.</li>
+</ul>
+
+<p>Cons:</p>
+<ul>
+  <li>RAM usage: you’ll keep Singleton annotated classes probably longer than what is strictly required. 
+As a team of 7 Android developers at Betclic, we are working on a 150k LoC sport betting application installed on 400k+ devices displaying thousands of matches, animating betting odds updates in realtime. We have a 99.9% crash free rate, and the 0.1% of the crashes are not related to memory issues, so I don’t think it matters that much.</li>
+  <li>No scoping: you’ll have to clean the data in your Singletons when it’s not used anymore, instead of just dropping a sub-component. (example in FAQ)</li>
+  <li>Singleton or manual injection when you need to share some data or ViewModels: if using Singleton, they could be poorly implemented and hold some data related to a specific page. Good practices need to be in place to avoid that.
+<br />
+<br />
+<br /></li>
+</ul>
+
+<hr />
+
+<h2 id="faq">FAQ</h2>
+
+<p>Post a comment and I’ll try to provide a proper response in this article.</p>
+
+<h3 id="i-want-to-keep-scoped-data-like-user-related-information-when-logged-in-and-clean-that-when-the-user-is-logged-off">I want to keep scoped data, like user related information when logged in, and clean that when the user is logged off.</h3>
+
+<p>Doing that with DI is complex, but you can easily have a @Singleton class that will handle that, for example :</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Singleton</span> <span class="kd">class</span> <span class="nc">UserManager</span> <span class="nd">@Inject</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="py">user</span><span class="p">:</span> <span class="nc">User</span><span class="p">?</span> <span class="p">=</span> <span class="k">null</span>
+    <span class="k">fun</span> <span class="nf">login</span><span class="p">(</span><span class="n">u</span><span class="p">:</span> <span class="nc">User</span><span class="p">)</span> <span class="p">{</span> <span class="n">user</span> <span class="p">=</span> <span class="n">u</span> <span class="p">}</span>
+    <span class="k">fun</span> <span class="nf">logout</span><span class="p">()</span> <span class="p">{</span> <span class="n">user</span> <span class="p">=</span> <span class="k">null</span> <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The main implication is that you need to know when you do or don’t use it anymore.</p>
+
+<h3 id="i-have-multiple-instances-of-the-same-class-that-i-want-to-inject">I have multiple instances of the same class that I want to inject.</h3>
+
+<p>It can happen in some projects, like for example a couple of okhttp client instances with distinct setup.</p>
+
+<p>If you encounter this specific case, you will have to define a Module to provide instances, and on the provide method add a simple <strong>@Named(“some_name”)</strong>. Now when you need to inject one specific instance, you’ll simply add the @Named annotation on the field:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">MyClass</span> <span class="nd">@Inject</span><span class="p">(</span>
+    <span class="nd">@Named</span><span class="p">(</span><span class="s">"public"</span><span class="p">)</span> <span class="k">private</span> <span class="kd">val</span> <span class="py">httpClient</span><span class="p">:</span> <span class="nc">OkHttpClient</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="can-i-really-keep-this-minimalism-in-a-multi-module-architecture">Can I really keep this minimalism in a multi-module architecture?</h3>
+
+<p><a href="/2020/04/28/Minimalist-Dagger-MultiModules/">Sure you can!</a></p>
+
+<p><br /></p>
+
+<h1 id="showcase-project">Showcase project</h1>
+
+<p><a href="https://github.com/glureau/MinimalistDagger/">glureau/MinimalistDagger</a></p>
+
+<p><br />
+Thanks to Matthieu Coisne for correcting my bad english.
+<br />
+<br />
+<br /></p>
+
+<hr />
+
+<h2 id="related-articles--videos">Related articles &amp; videos</h2>
+
+<p>Discovered this nice video while writing this article, great content!</p>
+<div class="youtube-container">
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/9fn5s8_CYJI" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+</div>
+
+
+        <hr>
+        
+
+        <div id="disqus_thread"></div>
+        <script>
+        var disqus_config = function () {
+          this.page.url = "https://www.glureau.com/2020/04/27/Minimalist-Dagger/";
+          this.page.identifier = "/2020/04/27/Minimalist-Dagger/";
+        };
+
+        (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = 'https://www-glureau-com.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+        })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                                    
+
+        <div class="clearfix">
+
+          
+          <a class="btn btn-primary float-left" href="/2020/04/19/TDD-failures/" data-toggle="tooltip" data-placement="top" title="TDD failures?">&larr; Previous<span class="d-none d-md-inline">
+              Post</span></a>
+          
+          
+          <a class="btn btn-primary float-right" href="/2020/04/28/Minimalist-Dagger-MultiModules/" data-toggle="tooltip" data-placement="top" title="Minimalist Dagger for multi-modules">Next<span class="d-none d-md-inline">
+              Post</span> &rarr;</a>
+          
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+
+<hr>
+
+<footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+        <ul class="list-inline text-center">
+          
+          <li class="list-inline-item">
+            <a href="mailto:gregorylureau@gmail.com">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="far fa-envelope fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+        </ul>
+        <p class="copyright text-muted">Copyright &copy; Grégory Lureau 2021</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+  <script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/vendor/startbootstrap-clean-blog/js/clean-blog.min.js"></script>
+
+<script src="/assets/scripts.js"></script>
+
+
+
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '');
+</script>
+
+
+
+</body>
+
+</html>
