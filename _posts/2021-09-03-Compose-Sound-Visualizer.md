@@ -105,7 +105,7 @@ Since the capture size is specific to the device (using a value out of the range
 This re-sampling is super basic, but all allowed captures values on the Visualizer should be a power of 2, so if we also take a power of 2 for the resolution we're fine.
 
 
-On the [github project(https://github.com/glureau/Equalizer), I use my own data class named VisualizerData to store the processing result as it will be handy later, but you can consider a simple IntArray for now.
+On the [github project](https://github.com/glureau/Equalizer), I use my own data class named VisualizerData to store the processing result as it will be handy later, but you can consider a simple IntArray for now.
 
 
 Now let's draw the equalizer!
