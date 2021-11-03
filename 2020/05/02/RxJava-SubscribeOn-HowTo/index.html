@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-151373304-1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-151373304-1');
+	</script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>
+    RxJava2 subscribeOn: How to use it - Grégory Lureau
+    
+  </title>
+
+  <meta name="description" content="As we saw in the quizz about subscribeOn, using subscribeOn can produce unexpected and subtle effects.">
+
+  <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="/assets/vendor/bootstrap/css/bootstrap.min.css">
+
+  <link rel="stylesheet" href="/assets/vendor/fontawesome-free/css/all.min.css">
+
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="/syntax.css">
+  <link rel="canonical" href="https://www.glureau.com/2020/05/02/RxJava-SubscribeOn-HowTo/">
+  <link rel="alternate" type="application/rss+xml" title="Grégory Lureau" href="/feed.xml">
+
+  <style type="text/css">
+    .gist .csv-data  {
+      overflow:auto;
+      max-height:350px;
+    }
+
+    .gist .file {
+      max-height:400px;
+      overflow:auto !important;
+    }
+
+    .gist .type-csv {
+      overflow:hidden !important;
+    }
+
+    .img {
+      position: relative;
+      max-height: 400px;
+      width: 100%
+    }
+
+    .highlight pre {
+      padding: 16px;
+    }
+
+    .youtube-container{
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%; 
+      height: 0;
+    }
+    .youtube-container iframe{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+table {
+  width: 100%;
+  text-align: center;
+}
+table td, table th {
+  border: 1px solid #FFFFFF;
+  padding: 3px 4px;
+}
+table tr:nth-child(even) {
+  background: #EBEBEB;
+}
+table thead th {
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  border-left: 2px solid #333333;
+}
+table thead th:first-child {
+  border-left: none;
+}
+
+table tfoot td {
+  font-size: 14px;
+}
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand" href="/">Grégory Lureau</a>
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+      Menu
+      <i class="fa fa-bars"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarResponsive">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/posts">Posts</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <!-- Page Header -->
+
+<header class="masthead" style="background-image: url('/pictures/Android-ImageSpan-Autosizing-background.png')">
+  
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 col-md-10 mx-auto">
+          <div class="post-heading">
+            <h1>RxJava2 subscribeOn: How to use it</h1>
+            
+            <h2 class="subheading">subscribeOn is an operator that can be easily used in the wrong place and lead to subtle bugs and even ANR. Some tips to avoid the pitfalls.</h2>
+            
+            <span class="meta">Posted by
+              <a href="#">Grégory Lureau</a>
+              on May 02, 2020 &middot; <span class="reading-time" title="Estimated read time">
+  
+   11 mins  read </span>
+
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+
+        <p>As we saw in the <a href="/2020/05/01/RxJava-Puzzle-SubscribeOn">quizz about subscribeOn</a>, using subscribeOn can produce unexpected and subtle effects.</p>
+
+<h1 id="subscribeon-pitfalls">subscribeOn pitfalls</h1>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">Observable</span><span class="p">.</span><span class="nf">just</span><span class="p">(</span><span class="s">"item"</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">computation</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">io</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">subscribe</span> <span class="p">{</span> <span class="nf">doSomething</span><span class="p">()</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>Will doSomething() be executed on the IO or the Computation scheduler?</p>
+
+<p>This convoluted but simple code is clearly not obvious for every developer.</p>
+
+<p>Actually it’ll be the Computation thread, basically because it’s the last subscribeOn in the reverse order.</p>
+
+<p><img src="/pictures/RxJava_Puzzle_2x_subscribeOn.png" alt="" /></p>
+
+<p>If this example looks silly, let’s look at a more concrete and subtle example</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">MyRepository</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">api</span> <span class="p">=</span> <span class="c1">//...</span>
+    <span class="k">fun</span> <span class="nf">getDataFromNetwork</span><span class="p">()</span> <span class="p">=</span> <span class="n">api</span><span class="p">.</span><span class="nf">getData</span><span class="p">().</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">io</span><span class="p">())</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="nc">MyViewModel</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">repository</span> <span class="p">=</span> <span class="nc">MyRepository</span><span class="p">()</span>
+    <span class="k">fun</span> <span class="nf">getViewState</span><span class="p">()</span> <span class="p">=</span> <span class="n">repository</span><span class="p">.</span><span class="nf">getDataFromNetwork</span><span class="p">()</span>
+            <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">computation</span><span class="p">())</span>
+            <span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="n">data</span> <span class="p">-&gt;</span> <span class="nf">computeViewState</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="p">}</span>
+    <span class="k">fun</span> <span class="nf">computeViewState</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="o">..</span><span class="p">.)</span> <span class="p">=</span> <span class="cm">/* Something that should run on a computation thread */</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="nc">MyFragment</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">viewModel</span> <span class="p">=</span> <span class="nc">MyViewModel</span><span class="p">()</span>
+    <span class="k">fun</span> <span class="nf">onViewCreated</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">viewModel</span><span class="p">.</span><span class="nf">getViewState</span><span class="p">()</span>
+            <span class="p">.</span><span class="nf">subscribe</span> <span class="p">{</span> <span class="n">viewState</span> <span class="p">-&gt;</span> <span class="nf">updateView</span><span class="p">(</span><span class="n">viewState</span><span class="p">)</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Just trying to keep things simple in this example, there is many issues here, but let’s focus on the ViewModel.</p>
+
+<p>When you look the ViewModel, you’ll have the feeling that you computeViewState method will be executed on Computation. At least, it’s the intent perceived most of the time, and it’s normal since your read it. Unfortunately, the computeViewState is actually done in the IO thread as we learned before, but it’s not even visible on the ViewModel class!</p>
+
+<p>Another way to ends with this issue, let’s say your repositories never defined the subscribeOn before. Then your code was running on a Computation thread as expected. But due to parallel network connection limited by Computation (bounded thread pool), you decide some months later to move all network calls to IO thread by adding the <code class="language-kotlin highlighter-rouge"><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">io</span><span class="p">())</span></code>. Unfortunately, one of your ViewModel was requiring to run on computation and you just break the production code of a non-modified file!</p>
+
+<p>I’ve experienced these issues myself, it’s not science-fiction, and maybe your code also have this problem? So how can we simply avoid that?</p>
+
+<h2 id="rule-1-use-only-1-subscribeon-for-each-stream-and-only-when-you-create-the-stream">Rule 1: Use only 1 subscribeOn for each stream, and only when you create the stream.</h2>
+
+<p>You don’t want your readers (including yourself) asking about which subscribeOn is really used or navigating in many files to understand the threading logic.</p>
+
+<p>For example, if you use Retrofit for a network call, you can ensure the network call is always done on the IO scheduler:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">Retrofit</span><span class="p">.</span><span class="nc">Builder</span><span class="p">()</span>
+    <span class="p">.</span><span class="nf">addCallAdapterFactory</span><span class="p">(</span><span class="nc">RxJava2CallAdapterFactory</span><span class="p">.</span><span class="nf">createWithScheduler</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">io</span><span class="p">()))</span>
+</code></pre></div></div>
+
+<p>If you create a stream for a non-RX library:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">Observable</span>
+    <span class="p">.</span><span class="nf">create</span> <span class="p">{</span> <span class="n">emitter</span> <span class="p">-&gt;</span>
+        <span class="n">externalLib</span><span class="p">.</span><span class="nf">doSomething</span><span class="p">(</span><span class="n">listener</span> <span class="p">=</span> <span class="p">{</span> <span class="n">data</span> <span class="p">-&gt;</span>
+            <span class="n">emitter</span><span class="p">.</span><span class="nf">onNext</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">emitter</span><span class="p">.</span><span class="nf">onComplete</span><span class="p">()</span>
+        <span class="p">})</span>
+    <span class="p">}</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">computation</span><span class="p">())</span>
+</code></pre></div></div>
+
+<p>Defining the subscribeOn at the very beginning of your stream ensure it cannot be changed by anyone else. As most of the business / IO code you write should not be executed on the main thread to avoid freezing your UI, I’d advise to always define a subscribeOn when creating a stream.</p>
+
+<p>I even think that only the wrapper classes that interacts with something external to your code (external libs / Android SDK) should define the threading.</p>
+
+<h2 id="rule-2-use-the-3rd-parameter-of-timer--interval-methods-instead-of-subscribeon">Rule 2: Use the 3rd parameter of timer &amp; interval methods instead of subscribeOn()</h2>
+
+<p><a href="/2020/04/29-RxJava-Puzzle-Scheduler-3rd-param/">Another article</a> explains what are the differences and why you should use this parameter.</p>
+
+<p><strong>Should you explicit the Schedulers.computation() if it’s already the default value in RxJava?</strong></p>
+
+<p>“It depends of your team’s knowledge on Rx.” It could be ok to think with a team of experts you don’t need to be explicit, but what if in some months you hire a more junior (at least on RX) developer?</p>
+
+<p>Being explicit is a bit of verbosity to ensure you clearly expressed the intent. As threading and asynchronism are particularly difficult concepts, I’d strongly advise to being explicit instead of relying on the level of knowledge of your current team.</p>
+
+<h2 id="rule-3-use-observeon-instead">Rule 3: Use observeOn instead</h2>
+
+<p>Use <code class="language-kotlin highlighter-rouge"><span class="n">observeOn</span></code> instead of <code class="language-kotlin highlighter-rouge"><span class="n">subscribeOn</span></code> when you want to run a part of your code in a specific thread pool. observeOn will <strong>ensure</strong> all the code below this line will run on the given scheduler, so it’s what you expect when reading AND it cannot be override by someone else. The new code:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">MyViewModel</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">repository</span> <span class="p">=</span> <span class="nc">MyRepository</span><span class="p">()</span>
+    <span class="k">fun</span> <span class="nf">getViewState</span><span class="p">()</span> <span class="p">=</span> <span class="n">repository</span><span class="p">.</span><span class="nf">getDataFromNetwork</span><span class="p">()</span>
+            <span class="p">.</span><span class="nf">observeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">computation</span><span class="p">())</span>
+            <span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="n">data</span> <span class="p">-&gt;</span> <span class="nf">computeViewState</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="p">}</span>
+    <span class="k">fun</span> <span class="nf">computeViewState</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="o">..</span><span class="p">.)</span> <span class="p">=</span> <span class="cm">/* Something that should run on a computation thread */</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here the intent reflects what’s happening, and a change in the repository will have no impact on the ViewModel implementation. This approach ensures your encapsulation is well-decoupled and only modified files will have a new behaviour. As an example, if you decide to add a cache mechanism in your Repository:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">MyRepository</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">api</span> <span class="p">=</span> <span class="c1">//...</span>
+    <span class="kd">val</span> <span class="py">cache</span><span class="p">:</span> <span class="nc">Data</span><span class="p">?</span> <span class="p">=</span> <span class="k">null</span>
+    <span class="k">fun</span> <span class="nf">getDataFromNetwork</span><span class="p">():</span> <span class="nc">Single</span> <span class="p">=</span> 
+        <span class="k">if</span> <span class="p">(</span><span class="n">cache</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> 
+            <span class="n">api</span><span class="p">.</span><span class="nf">getData</span><span class="p">()</span>
+               <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">io</span><span class="p">())</span>
+               <span class="p">.</span><span class="nf">doOnNext</span> <span class="p">{</span><span class="n">data</span> <span class="p">-&gt;</span> <span class="n">cache</span> <span class="p">=</span> <span class="n">data</span><span class="p">}</span>
+        <span class="k">else</span> 
+            <span class="nc">Single</span><span class="p">.</span><span class="nf">just</span><span class="p">(</span><span class="n">cache</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here you avoid a network call, and as such you don’t really need to subscribe on IO scheduler, because you’re not performing IO operations. Adding a subscribeOn here will just adds a thread swap and not bring any value.</p>
+
+<p>Thanks to the observeOn usage, the ViewModel will NOT be impacted by this change.</p>
+
+<h2 id="rule-4-dont-rely-on-other-classes-to-define-your-threading">Rule 4: Don’t rely on other classes to define your threading.</h2>
+
+<p><strong>Rule 3</strong> examples implies directly <strong>Rule 4</strong>.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">MyRepository</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">api</span> <span class="p">=</span> <span class="c1">//...</span>
+    <span class="k">fun</span> <span class="nf">getDataFromNetwork</span><span class="p">()</span> <span class="p">=</span> <span class="n">api</span><span class="p">.</span><span class="nf">getData</span><span class="p">().</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">io</span><span class="p">())</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="nc">MyViewModel</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">repository</span> <span class="p">=</span> <span class="nc">MyRepository</span><span class="p">()</span>
+    <span class="k">fun</span> <span class="nf">getViewState</span><span class="p">()</span> <span class="p">=</span> <span class="n">repository</span><span class="p">.</span><span class="nf">getDataFromNetwork</span><span class="p">()</span>
+            <span class="p">.</span><span class="nf">observeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">io</span><span class="p">())</span> <span class="c1">// Not required, should I remove that line?</span>
+            <span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="n">data</span> <span class="p">-&gt;</span> <span class="nf">storeViewStateOnDisk</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="p">}</span>
+    <span class="k">fun</span> <span class="nf">storeViewStateOnDisk</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="o">..</span><span class="p">.)</span> <span class="p">=</span> <span class="cm">/* Something that should run on an IO thread */</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here the observeOn in ViewModel is not necessary and can even be considered as redundant, because the stream already provides the item on IO scheduler.</p>
+
+<p>Again you have to think for the future modifications of the code. Here you have the 2 classes  visible in a couple of lines, this is not true in a real project. In some months, adding a cache in the repository will change the threading of the ViewModel, if you don’t protect yourself with an observeOn. Something as simple as writting in a SharedPref is doing an IO operation, so let’s say that the subscribe is done from the main thread (as often) and get data instantly from the repository due to cache, then your app will actually do an IO operation on the main thread (when there is some cache and if you removed the observeOn).</p>
+
+<p>This problem is quite subtle to detect, you didn’t change the ViewModel in question, the ANR is probably not reproducible since you’ve to emulate an overload of the sdcard IO, and reproducible only when you hit the cache. You’re good to lost hours and even days of investigation on this kind of issues.</p>
+
+<p>Just protect yourself, use an observeOn() before any operation requiring a specific scheduler.</p>
+
+<h3 id="ok-but-changing-thread-has-cost-right">Ok, but changing thread has cost right?</h3>
+
+<p>Yes, this solution will have a slight impact on your performance, it’s a trade off.</p>
+
+<p>Cons of using observeOn:</p>
+<ul>
+  <li>You can lost some micro-seconds when switching thread for no reasons.</li>
+</ul>
+
+<p>Pros of using observeOn:</p>
+<ul>
+  <li>You avoid potential ANR for your clients,</li>
+  <li>You saved yourself hours of debugging,</li>
+  <li>You are confident on the behaviour of xyour code,</li>
+  <li>Your code is future-proof.</li>
+</ul>
+
+<p>If the UI is not lagging and user see the data 0.000001 seconds later, they will never notice it.</p>
+
+<hr />
+
+<p>Pretty sure there can be other approaches or guidelines on this matter, please share yours!</p>
+
+
+        <hr>
+        
+
+        <div id="disqus_thread"></div>
+        <script>
+        var disqus_config = function () {
+          this.page.url = "https://www.glureau.com/2020/05/02/RxJava-SubscribeOn-HowTo/";
+          this.page.identifier = "/2020/05/02/RxJava-SubscribeOn-HowTo/";
+        };
+
+        (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = 'https://www-glureau-com.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+        })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                                    
+
+        <div class="clearfix">
+
+          
+          <a class="btn btn-primary float-left" href="/2020/05/01/RxJava-Puzzle-Subscription-Threading/" data-toggle="tooltip" data-placement="top" title="RxJava2 puzzle: Subscription threading">&larr; Previous<span class="d-none d-md-inline">
+              Post</span></a>
+          
+          
+          <a class="btn btn-primary float-right" href="/2020/05/15/Jetpack-ViewModel-ProCons/" data-toggle="tooltip" data-placement="top" title="Should I use Jetpack ViewModel?">Next<span class="d-none d-md-inline">
+              Post</span> &rarr;</a>
+          
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+
+<hr>
+
+<footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+        <ul class="list-inline text-center">
+          
+          <li class="list-inline-item">
+            <a href="mailto:gregorylureau@gmail.com">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="far fa-envelope fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+        </ul>
+        <p class="copyright text-muted">Copyright &copy; Grégory Lureau 2021</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+  <script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/vendor/startbootstrap-clean-blog/js/clean-blog.min.js"></script>
+
+<script src="/assets/scripts.js"></script>
+
+
+
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '');
+</script>
+
+
+
+</body>
+
+</html>

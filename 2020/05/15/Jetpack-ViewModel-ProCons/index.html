@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-151373304-1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-151373304-1');
+	</script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>
+    Should I use Jetpack ViewModel? - Grégory Lureau
+    
+  </title>
+
+  <meta name="description" content="Adding a new library to a production project should always be done with extra care.">
+
+  <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="/assets/vendor/bootstrap/css/bootstrap.min.css">
+
+  <link rel="stylesheet" href="/assets/vendor/fontawesome-free/css/all.min.css">
+
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="/syntax.css">
+  <link rel="canonical" href="https://www.glureau.com/2020/05/15/Jetpack-ViewModel-ProCons/">
+  <link rel="alternate" type="application/rss+xml" title="Grégory Lureau" href="/feed.xml">
+
+  <style type="text/css">
+    .gist .csv-data  {
+      overflow:auto;
+      max-height:350px;
+    }
+
+    .gist .file {
+      max-height:400px;
+      overflow:auto !important;
+    }
+
+    .gist .type-csv {
+      overflow:hidden !important;
+    }
+
+    .img {
+      position: relative;
+      max-height: 400px;
+      width: 100%
+    }
+
+    .highlight pre {
+      padding: 16px;
+    }
+
+    .youtube-container{
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%; 
+      height: 0;
+    }
+    .youtube-container iframe{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+table {
+  width: 100%;
+  text-align: center;
+}
+table td, table th {
+  border: 1px solid #FFFFFF;
+  padding: 3px 4px;
+}
+table tr:nth-child(even) {
+  background: #EBEBEB;
+}
+table thead th {
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  border-left: 2px solid #333333;
+}
+table thead th:first-child {
+  border-left: none;
+}
+
+table tfoot td {
+  font-size: 14px;
+}
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand" href="/">Grégory Lureau</a>
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+      Menu
+      <i class="fa fa-bars"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarResponsive">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/posts">Posts</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <!-- Page Header -->
+
+<header class="masthead" style="background-image: url('/pictures/barn-images-t5YUoHW6zRo-unsplash.jpg')">
+  
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 col-md-10 mx-auto">
+          <div class="post-heading">
+            <h1>Should I use Jetpack ViewModel?</h1>
+            
+            <h2 class="subheading">All new shiny libraries are not good for all projects, it has to responds to a real problem first. Let's see if you should pick Jetpack ViewModel.</h2>
+            
+            <span class="meta">Posted by
+              <a href="#">Grégory Lureau</a>
+              on May 15, 2020 &middot; <span class="reading-time" title="Estimated read time">
+  
+   20 mins  read </span>
+
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+
+        <p><strong>Adding a new library to a production project should always be done with extra care.</strong></p>
+
+<p>Jetpack introduced some months ago a <a href="https://developer.android.com/topic/libraries/architecture/viewmodel">ViewModel</a> library with a class of the same name. This new class “<strong>store and manage UI-related data in a lifecycle conscious way</strong>”. It’s not really limiting to the MVVM pattern actually and can be inherited by your presenters, controllers,…</p>
+
+<p>In this post, I presume you know the basics of ViewModel (if you don’t, there are many good resources out there) and we’ll try to go further and understand the implications of adding this library into a project.</p>
+
+<h1 id="lifecycles">Lifecycles</h1>
+
+<p>One of the sexiest part of ViewModel, from my point of view, was the idea of ‘a simpler lifecycle’. Android lifecycles are quite complex, so this is quite a big deal for simplifying our code and spend more time on feature than on fixing lifecycle-related issues.</p>
+
+<p>Let’s look at this super simple lifecycle!</p>
+
+<p><img src="/pictures/Jetpack-ViewModel-activitylifecycle.png" alt="" /></p>
+
+<p>This look sexy! All is handled in the body of the ViewModel, I don’t even need to remember lifecycle methods anymore…</p>
+
+<p>And it handles re-creation! And I even have a method to clean stuff if needed!</p>
+
+<p>Unfortunately you’ll always need to have lifecycles to know if you’re drawn, if you’re re-resumed, or re-started to play an animation at the right moment…</p>
+
+<p><strong>But first let’s take a bigger picture with this version:</strong></p>
+
+<p><img src="/pictures/Jetpack-ViewModel-Lifecycles.png" alt="" /></p>
+
+<p>(picture from <a href="https://medium.com/androiddevelopers/the-android-lifecycle-cheat-sheet-part-iv-49946659b094">The Android Lifecycle cheat sheet</a> by Jose Alcérreca)</p>
+
+<p>Let’s point out some details from this picture:</p>
+<ul>
+  <li>ViewModel is not present when the <code class="language-kotlin highlighter-rouge"><span class="nc">Activity</span></code> is created</li>
+  <li>ViewModel is present when the <code class="language-kotlin highlighter-rouge"><span class="nc">Activity</span></code> is re-created with <code class="language-kotlin highlighter-rouge"><span class="nf">onCreate</span><span class="p">(</span><span class="nc">Bundle</span><span class="p">)</span></code></li>
+  <li>ViewModel is always present in <code class="language-kotlin highlighter-rouge"><span class="n">onDestroy</span></code> of the <code class="language-kotlin highlighter-rouge"><span class="nc">Activity</span></code> (not very symetrical to the onCreate)</li>
+</ul>
+
+<p>And for the Fragment version</p>
+
+<ul>
+  <li>ViewModel is not present when the <code class="language-kotlin highlighter-rouge"><span class="nc">Fragment</span></code> is attached or created.</li>
+  <li>ViewModel is present when it’s re-attached or re-created (so in <code class="language-kotlin highlighter-rouge"><span class="n">onAttach</span></code> you cannot know if it exists or not)</li>
+  <li>ViewModel may be present in <code class="language-kotlin highlighter-rouge"><span class="n">onDestroy</span></code> of the <code class="language-kotlin highlighter-rouge"><span class="nc">Fragment</span></code> (you don’t really know)</li>
+</ul>
+
+<p>The Kotlin extensions to retrieve a ViewModel use the lazy mechanism, so you think you deal with a non-null variable in your code but actually you deal with a “it depends” variable if it’s used inside the <code class="language-kotlin highlighter-rouge"><span class="n">onAttach</span></code> or <code class="language-kotlin highlighter-rouge"><span class="n">onCreate</span></code> methods. And the “it depends” is directly translatable by <em>“maybe it will crash your app”</em> since it’s generally used from the main thread.</p>
+
+<p>Adds to that Fragment can be retained (<code class="language-kotlin highlighter-rouge"><span class="n">onDestroy</span></code>/<code class="language-kotlin highlighter-rouge"><span class="n">onCreate</span></code> no more called when device rotate), that there is unfrequent lifecycle methods like <code class="language-kotlin highlighter-rouge"><span class="nc">Activity</span><span class="err">#</span><span class="n">onRestart</span></code>, <code class="language-kotlin highlighter-rouge"><span class="nc">Activity</span><span class="err">#</span><span class="n">onNewIntent</span></code>, … or that flags on the Intent actually change the Activity method calls. <a href="https://github.com/JoseAlcerreca/android-lifecycles/tree/a5dfd030a70989ad2496965f182e5fa296e6221a">Lifecycles are complex.</a></p>
+
+<p>This is not really simplifying the lifecycles but adding a third one to the mix. New developers will still need to understand the <code class="language-kotlin highlighter-rouge"><span class="nc">Activity</span></code>/<code class="language-kotlin highlighter-rouge"><span class="nc">Fragment</span></code> lifecycles + the fact they can’t use their ViewModel in all lifecycle methods.</p>
+
+<p>That’s said, if you limit your code in Activity / Fragment to the <code class="language-kotlin highlighter-rouge"><span class="n">onCreateView</span></code> / <code class="language-kotlin highlighter-rouge"><span class="n">onStart</span></code> / <code class="language-kotlin highlighter-rouge"><span class="n">onResume</span></code> and the symmetrical <code class="language-kotlin highlighter-rouge"><span class="n">onPause</span></code> / <code class="language-kotlin highlighter-rouge"><span class="n">onStop</span></code> / <code class="language-kotlin highlighter-rouge"><span class="n">onDestroyView</span></code>, you should be safe.</p>
+
+<h1 id="dependency-injection">Dependency injection</h1>
+
+<p>One of the big issue with Android and DI is the fact that the construction of Activities and Fragments are done by the system. As such, it’s impossible to inject our dependencies directly in the constructor, and we have to rely on field injection:</p>
+<ul>
+  <li>requires reflection (little impact on performance),</li>
+  <li>requires internal/public visibility (bad encapsulation),</li>
+  <li>coupling with the DI library,</li>
+  <li>hide the dependencies, you can create a Fragment without knowing about its dependencies, or add yet another injected field without thinking “Am I not creating a class with too many dependencies?” (bad architecture),</li>
+  <li>nullability/immutability issues (cognitive load -&gt; adding <code class="language-kotlin highlighter-rouge"><span class="nf">lazy</span> <span class="p">{</span> <span class="p">}</span></code> to class members to defer the work -&gt; degrading performances due to additional useless inner classes)</li>
+</ul>
+
+<p>If after that you’ve still some doubts, google “field injection”.</p>
+
+<p>Example of code where you’ll experiment a crash (NullPointerException) because using field injection:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">MyActivity</span><span class="p">:</span> <span class="nc">Activity</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nd">@Inject</span> <span class="k">lateinit</span> <span class="kd">var</span> <span class="py">myService</span><span class="p">:</span> <span class="nc">Service</span>
+
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">url</span> <span class="p">=</span> <span class="n">myService</span><span class="p">.</span><span class="nf">getUrl</span><span class="p">()</span> <span class="c1">// throws NullPointerException</span>
+
+    <span class="k">fun</span> <span class="nf">onCreate</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// Injecting your dependencies</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Well, it’s almost the same story for Jetpack ViewModels <strong>by default</strong>. ViewModels are created by a Factory, that is by default provided by Android, so you can start immediately, and get system injections like the application <code class="language-kotlin highlighter-rouge"><span class="nc">Context</span></code> or the <code class="language-kotlin highlighter-rouge"><span class="nc">SavedStateHandle</span></code>. You can still use field injection but you’ll have the previous issues…</p>
+
+<p><strong>Thanksfully you can plug your Dagger dependencies to the ViewModelProvider! Right?</strong></p>
+
+<p>So if you use Dagger for example, you’ll have to do some “black magic” to plug your dependencies in the ViewModel. Stuff like handling maps of <code class="language-kotlin highlighter-rouge"><span class="nc">AbstractViewModelFactory</span></code> factories. Yep, factories of factories. <strong>Like if DI was already so easy that we feel the urge to add yet an additional layer of complexity.</strong></p>
+
+<p>A simple example of black magic from the <a href="https://github.com/android/architecture-samples/blob/dagger-android/app/src/main/java/com/example/android/architecture/blueprints/todoapp/di/ViewModelFactory.kt">android blueprints</a> itself. Indeed if you take some time you’ll understand all the implications of this code, but as it’s not provided by the library, you’ll have to maintain it at some point…</p>
+
+<p>One of the benefit of the <a href="/2020/04/27/Minimalist-Dagger/">Minimalist Dagger</a> (and the <a href="/2020/04/28/Minimalist-Dagger-MultiModules/">multi-modules article</a>) approach I presented before was that most of the modules don’t use kapt while using Dagger 2, and don’t even need to have a <code class="language-kotlin highlighter-rouge"><span class="nd">@Module</span></code>. So you’re reducing a lot the coupling with the DI library. If you “upgrade” to Jetpack ViewModel and use the code provided in the architecture blueprint, you now need a bind method for each ViewModel, like in the <a href="https://github.com/android/architecture-samples/blob/dagger-android/app/src/main/java/com/example/android/architecture/blueprints/todoapp/di/StatisticsModule.kt">blueprint example</a> :</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Module</span>
+<span class="k">abstract</span> <span class="kd">class</span> <span class="nc">StatisticsModule</span> <span class="p">{</span>
+    <span class="nd">@Binds</span>
+    <span class="nd">@IntoMap</span>
+    <span class="nd">@ViewModelKey</span><span class="p">(</span><span class="nc">StatisticsViewModel</span><span class="o">::</span><span class="k">class</span><span class="p">)</span>
+    <span class="k">abstract</span> <span class="k">fun</span> <span class="nf">bindViewModel</span><span class="p">(</span><span class="n">viewmodel</span><span class="p">:</span> <span class="nc">StatisticsViewModel</span><span class="p">):</span> <span class="nc">ViewModel</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>And now all your modules knows about Dagger (<code class="language-kotlin highlighter-rouge"><span class="nd">@Module</span></code>, <code class="language-kotlin highlighter-rouge"><span class="nd">@Binds</span></code>, <code class="language-kotlin highlighter-rouge"><span class="nd">@IntoMap</span></code> + your custom annotation) and you run kapt in each one of them. For the build time I’m not sure, for the dependency to Dagger I presume it’s “ok-ish” (at best) as Android will invest more on this lib, but for all the developers thinking Dagger is too much verbose…</p>
+
+<p>Did I tell you this black magic code was actually the simplest case?</p>
+
+<p>What if you want to use a SavedStateHandle or inject the App context… or both? This approach is not enough, so you have 2 options: make more black magic DI code, or just make a <a href="https://github.com/android/architecture-samples/blob/cfb5ac6ea6a5c888b171d88d7ea4287a33af5cb9/app/src/main/java/com/example/android/architecture/blueprints/todoapp/ViewModelFactory.kt">big switch cases with all the constructors of all your ViewModels</a>.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Suppress</span><span class="p">(</span><span class="s">"UNCHECKED_CAST"</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">ViewModelFactory</span> <span class="k">constructor</span><span class="p">(</span>
+    <span class="n">owner</span><span class="p">:</span> <span class="nc">SavedStateRegistryOwner</span><span class="p">,</span>
+    <span class="n">defaultArgs</span><span class="p">:</span> <span class="nc">Bundle</span><span class="p">?</span> <span class="p">=</span> <span class="k">null</span><span class="p">,</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">tasksRepository</span><span class="p">:</span> <span class="nc">TasksRepository</span>
+    <span class="cm">/* Plug all your module dependencies here */</span>
+<span class="p">)</span> <span class="p">:</span> <span class="nc">AbstractSavedStateViewModelFactory</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">defaultArgs</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="k">override</span> <span class="k">fun</span> <span class="p">&lt;</span><span class="nc">T</span> <span class="err">:</span> <span class="nc">ViewModel</span><span class="p">&gt;</span> <span class="nf">create</span><span class="p">(</span>
+            <span class="n">key</span><span class="p">:</span> <span class="nc">String</span><span class="p">,</span>
+            <span class="n">modelClass</span><span class="p">:</span> <span class="nc">Class</span><span class="p">&lt;</span><span class="nc">T</span><span class="p">&gt;,</span>
+            <span class="n">handle</span><span class="p">:</span> <span class="nc">SavedStateHandle</span>
+    <span class="p">)</span> <span class="p">=</span> <span class="nf">with</span><span class="p">(</span><span class="n">modelClass</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">when</span> <span class="p">{</span>
+            <span class="nf">isAssignableFrom</span><span class="p">(</span><span class="nc">StatisticsViewModel</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="nc">StatisticsViewModel</span><span class="p">(</span><span class="n">tasksRepository</span><span class="p">)</span>
+            <span class="nf">isAssignableFrom</span><span class="p">(</span><span class="nc">TaskDetailViewModel</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="nc">TaskDetailViewModel</span><span class="p">(</span><span class="n">tasksRepository</span><span class="p">)</span>
+            <span class="nf">isAssignableFrom</span><span class="p">(</span><span class="nc">AddEditTaskViewModel</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="nc">AddEditTaskViewModel</span><span class="p">(</span><span class="n">tasksRepository</span><span class="p">)</span>
+            <span class="nf">isAssignableFrom</span><span class="p">(</span><span class="nc">TasksViewModel</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="nc">TasksViewModel</span><span class="p">(</span><span class="n">tasksRepository</span><span class="p">,</span> <span class="n">handle</span><span class="p">)</span>
+            <span class="k">else</span> <span class="p">-&gt;</span> <span class="k">throw</span> <span class="nc">IllegalArgumentException</span><span class="p">(</span><span class="s">"Unknown ViewModel class: ${modelClass.name}"</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span> <span class="k">as</span> <span class="nc">T</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Indeed the blueprints is not super scalable (maybe it’s not even intended to be scalable), but it means than before Jetpack, to add a ViewModel, you created a new class, and referenced the class in the Fragment, so modifying 2 files. Now you also need to create a dedicated module, and update your big switch case.</p>
+
+<p>What if you want to add another dependency to your ViewModel? Again need to edit the “DI file”, add yet another field in the constructor of your ViewModelFactory… Does it go over your code-quality metrics now?</p>
+
+<p>Also let’s say you’ve a DefaultViewModel that can be instantiated, but also 2 other subclasses with slightly different behaviors. Now the big switch case needs to be ordered to avoid a bad match, and documented because it’s not that obvious that order matters here…</p>
+
+<p>Yes there are other approaches to the problem. But no default approach, or no viewmodel-dagger2 lib that does the work for you yet (this <code class="language-kotlin highlighter-rouge"><span class="k">when</span></code> is pure boilerplate and could be automated), so you’ll have to find a good approach for you before anything else. I’m confident Android engineers will deliver a solution at some point, but when? And with what limitations?</p>
+
+<p>Ok… let’s say we have copy-pasted some files from github or StackOverflow to make Dagger happy, now we’re good on DI right?</p>
+
+<h2 id="analysis-at-compile-time">Analysis at compile-time</h2>
+
+<p>Well actually, before Jetpack ViewModel, Dagger2 was checking all dependencies and was ensuring everything was provided. It means than if it builds, you don’t have dependency issue. Is it still true?</p>
+
+<p>No. As you can see in the <code class="language-kotlin highlighter-rouge"><span class="k">when</span></code>, the <code class="language-kotlin highlighter-rouge"><span class="nc">ViewModelProvider</span><span class="p">.</span><span class="nc">Factory</span></code> signature is based on a Class:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">&lt;</span><span class="nc">T</span> <span class="n">extends</span> <span class="nc">ViewModel</span><span class="p">&gt;</span> <span class="nc">T</span> <span class="nf">create</span><span class="p">(</span><span class="nd">@NonNull</span> <span class="nc">Class</span><span class="p">&lt;</span><span class="nc">T</span><span class="p">&gt;</span> <span class="n">modelClass</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>So you don’t have the choice than <strong>crash at runtime</strong> when the class given in parameters is not mapped in your code. Also, as we’ve seen in the Lifecycles part, you cannot create the ViewModel out of a specific lifecycle without crashing, so clearly the dependency injection with ViewModel is no more checked at compile-time. To get back the analysis at compile-time, you can indeed add another annotation processor library, costing more build time…</p>
+
+<h2 id="communication-between-views">Communication between views</h2>
+
+<p>Using ViewModel allow to easily interact between Activity and Fragment. Let’s say for example there is a ViewModel at the Activity level and a Fragment want to notify of some changes, dead simple (with fragment-ktx 1.1.0+):</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">MyViewModel</span> <span class="p">{</span>
+    <span class="k">fun</span> <span class="nf">getViewState</span><span class="p">():</span> <span class="nc">MyViewState</span> <span class="p">{</span><span class="err"> </span><span class="o">..</span><span class="p">.</span> <span class="p">}</span>
+    <span class="k">fun</span> <span class="nf">updateStuff</span><span class="p">()</span> <span class="p">{</span> <span class="o">..</span><span class="p">.</span> <span class="p">}</span>
+<span class="p">}</span>
+<span class="kd">class</span> <span class="nc">MyActivity</span><span class="p">:</span> <span class="nc">Activity</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">myViewModel</span> <span class="k">by</span> <span class="n">viewModels</span><span class="p">&lt;</span><span class="nc">MyViewModel</span><span class="p">&gt;()</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onResume</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nf">updateView</span><span class="p">(</span><span class="n">myViewModel</span><span class="p">.</span><span class="nf">getViewState</span><span class="p">())</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="kd">class</span> <span class="nc">MyFragment</span><span class="p">:</span> <span class="nc">Fragment</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">myViewModel</span> <span class="k">by</span> <span class="n">activityViewModels</span><span class="p">&lt;</span><span class="nc">MyViewModel</span><span class="p">&gt;()</span>
+    <span class="k">fun</span> <span class="nf">onClick</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">myViewModel</span><span class="p">.</span><span class="nf">updateStuff</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This is <strong>really cool</strong>, there will be only one instance of the MyViewModel in this case. Before you were limited to:</p>
+<ul>
+  <li>inject in the Activity with your DI, then manually injects your fragments when they are attached. This leaks the dependencies of your Fragments in the Activity, so limiting reusability.</li>
+  <li>create a scoped Component by Activity, adding some complexity in your DI.</li>
+</ul>
+
+<p>Actually for Dagger users, that’s like there were 2 new scopes “ActivityScope” / “FragmentScope” and a dynamic Component for each activity started, so you don’t have to write them!</p>
+
+<p>As a corollary, a custom view can use a ViewModel from its Activity or Fragment, but not from the view itself. You can still create a MyViewModel with Dagger and inject it in the view, but it will not use the ViewModel mechanism, so no <code class="language-kotlin highlighter-rouge"><span class="nc">SavedStateHandle</span></code> or <code class="language-kotlin highlighter-rouge"><span class="nf">onCleared</span><span class="p">()</span></code>, so MyViewModel doesn’t need to extend ViewModel.</p>
+
+<p>Same for a ViewModel that needs another ViewModel, there is no solution as far as I know.</p>
+
+<p>Note that the scopes are hidden, so if a fragment uses <code class="language-kotlin highlighter-rouge"><span class="k">by</span> <span class="n">viewModel</span><span class="p">&lt;</span><span class="nc">MyViewModel</span><span class="p">&gt;()</span></code> and the activity uses <code class="language-kotlin highlighter-rouge"><span class="k">by</span> <span class="n">viewModel</span><span class="p">&lt;</span><span class="nc">MyViewModel</span><span class="p">&gt;()</span></code>, both will have a distinct MyViewModel instance. Fragment should have used  <code class="language-kotlin highlighter-rouge"><span class="k">by</span> <span class="n">activityViewModel</span><span class="p">&lt;</span><span class="nc">MyViewModel</span><span class="p">&gt;()</span></code> to share the same instance. This kind of setup error will probably occurs at some point.</p>
+
+<h2 id="communication-between-viewmodels">Communication between ViewModels</h2>
+
+<p>Now let’s say there is an Activity with a “master” ViewModel, and 2 Fragments, each one having its own ViewModel. The master requires the validation of the 2 sub ViewModels. How can we plug that?</p>
+
+<ul>
+  <li>We can declare the 2 Fragment’s ViewModels on the (invisible) “Fragment scope”, and the Activity listen onAttach -&gt; Nop, the master ViewModel needs to know about the 2 others but the Activity itself doesn’t need to.</li>
+  <li>We can declare the 3 ViewModels as scoped to the Activity, but then the Activity needs to plug them together.</li>
+  <li>We can declare the 2 Fragment’s ViewModels on the (invisible) “Fragment scope”, and depends on the master ViewModel like this:</li>
+</ul>
+<p></p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">FragmentA</span> <span class="p">:</span> <span class="nc">Fragment</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">masterViewModel</span> <span class="k">by</span> <span class="n">activityViewModels</span><span class="p">&lt;</span><span class="nc">MasterViewModel</span><span class="p">&gt;()</span>
+    <span class="kd">val</span> <span class="py">viewModel</span> <span class="k">by</span> <span class="n">viewModels</span><span class="p">&lt;</span><span class="nc">AViewModel</span><span class="p">&gt;()</span>
+    <span class="k">fun</span> <span class="nf">onResume</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">masterViewModel</span><span class="p">.</span><span class="nf">addSlave</span><span class="p">(</span><span class="n">viewModel</span><span class="p">)</span>
+        <span class="c1">// or</span>
+        <span class="n">viewModel</span><span class="p">.</span><span class="nf">onChange</span> <span class="p">{</span> <span class="n">masterViewModel</span><span class="p">.</span><span class="nf">notifyAChanged</span><span class="p">()</span> <span class="p">}</span>
+        <span class="c1">// or anything doing the glue between both ViewModels</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Whatever the solution that fits your need, there is still a bit of glue. I’d love a solution to ask a ViewModel (if present) from another one, so that I don’t need to change the Activity/Fragment classes anymore. <strong>Please share in comments if you know a solution!</strong></p>
+
+<p>By the way, Activity has generally a longer scope than Fragment, so passing the ViewModel of the Fragment to an Activity ViewModel will probably lead to a memory leak.</p>
+
+<h1 id="provides-data-to-viewmodel">Provides data to ViewModel</h1>
+
+<p>A major benefits with <code class="language-kotlin highlighter-rouge"><span class="nc">SavedStateHandle</span></code> is the possibility to get the Activity’s intent <code class="language-kotlin highlighter-rouge"><span class="n">extras</span></code>, or the Fragment’s <code class="language-kotlin highlighter-rouge"><span class="n">arguments</span></code> from the ViewModel. When it’s pluggued (black magic DI), you’ll have a very pleasant experience:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">MyViewModel</span><span class="p">(</span><span class="n">savedStateHandle</span><span class="p">:</span> <span class="nc">SavedStateHandle</span><span class="p">):</span> <span class="nc">ViewModel</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">companion</span> <span class="k">object</span> <span class="p">{</span>
+        <span class="k">private</span> <span class="k">const</span> <span class="kd">val</span> <span class="py">ARG_KEY</span> <span class="p">=</span> <span class="s">"ARG_KEY"</span>
+        <span class="k">fun</span> <span class="nf">bundle</span><span class="p">(</span><span class="n">userId</span><span class="p">:</span> <span class="nc">String</span><span class="p">)</span> <span class="p">=</span> <span class="nf">bundleOf</span><span class="p">(</span><span class="nc">ARG_KEY</span> <span class="n">to</span> <span class="n">userId</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">userId</span><span class="p">:</span> <span class="nc">String</span><span class="p">?</span> <span class="p">=</span> <span class="n">savedStateHandle</span><span class="p">.</span><span class="k">get</span><span class="p">&lt;</span><span class="nc">String</span><span class="p">&gt;(</span><span class="nc">ARG_KEY</span><span class="p">)</span>
+    <span class="nf">init</span> <span class="p">{</span> <span class="nf">println</span><span class="p">(</span><span class="n">userId</span><span class="p">)</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="nc">MyFragment</span><span class="p">:</span> <span class="nc">Fragment</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">companion</span> <span class="k">object</span> <span class="p">{</span>
+        <span class="k">fun</span> <span class="nf">newInstance</span><span class="p">(</span><span class="n">userId</span><span class="p">:</span> <span class="nc">String</span><span class="p">)</span> <span class="p">=</span> <span class="nc">MyFragment</span><span class="p">()</span>
+            <span class="p">.</span><span class="nf">apply</span> <span class="p">{</span> <span class="n">arguments</span> <span class="p">=</span> <span class="nc">MyViewModel</span><span class="p">.</span><span class="nf">bundle</span><span class="p">(</span><span class="n">userId</span><span class="p">)}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>A big win here, you can add parameters to the bundle without modifying your view anymore.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>This is indeed completely up to you!</p>
+
+<p>But just to sum up my feelings about it:</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td><strong>Topic</strong></td>
+      <td><strong>without ViewModel</strong></td>
+      <td><strong>Jetpack ViewModel</strong></td>
+    </tr>
+    <tr>
+      <td>Lifecycle complexity</td>
+      <td>😔</td>
+      <td>😔</td>
+    </tr>
+    <tr>
+      <td>DI complexity</td>
+      <td>👌</td>
+      <td>😔</td>
+    </tr>
+    <tr>
+      <td>Checks DI at compile-time</td>
+      <td>😍</td>
+      <td>😔</td>
+    </tr>
+    <tr>
+      <td>Sharing ViewModel</td>
+      <td>😔</td>
+      <td>😍</td>
+    </tr>
+    <tr>
+      <td>Communication between ViewModel</td>
+      <td>😐</td>
+      <td>😐</td>
+    </tr>
+    <tr>
+      <td>Handle saved states</td>
+      <td>😔</td>
+      <td>😍</td>
+    </tr>
+    <tr>
+      <td>Passing args to ViewModel</td>
+      <td>😐</td>
+      <td>😍</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>There are serious drawbacks to go with Jetpack ViewModel, but it’s also helping to clean and reduce your glue code. In my main project, we’ve chosen to go further with ViewModel, but first we worked on some approaches to mitigate the drawbacks. Stay tuned for the next articles on that matter.</p>
+
+
+        <hr>
+        
+
+        <div id="disqus_thread"></div>
+        <script>
+        var disqus_config = function () {
+          this.page.url = "https://www.glureau.com/2020/05/15/Jetpack-ViewModel-ProCons/";
+          this.page.identifier = "/2020/05/15/Jetpack-ViewModel-ProCons/";
+        };
+
+        (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = 'https://www-glureau-com.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+        })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                                    
+
+        <div class="clearfix">
+
+          
+          <a class="btn btn-primary float-left" href="/2020/05/02/RxJava-SubscribeOn-HowTo/" data-toggle="tooltip" data-placement="top" title="RxJava2 subscribeOn: How to use it">&larr; Previous<span class="d-none d-md-inline">
+              Post</span></a>
+          
+          
+          <a class="btn btn-primary float-right" href="/2020/05/26/Ktlint-Moshi-Introduction/" data-toggle="tooltip" data-placement="top" title="Ktlint: a great 1st experience">Next<span class="d-none d-md-inline">
+              Post</span> &rarr;</a>
+          
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+
+<hr>
+
+<footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+        <ul class="list-inline text-center">
+          
+          <li class="list-inline-item">
+            <a href="mailto:gregorylureau@gmail.com">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="far fa-envelope fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+        </ul>
+        <p class="copyright text-muted">Copyright &copy; Grégory Lureau 2021</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+  <script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/vendor/startbootstrap-clean-blog/js/clean-blog.min.js"></script>
+
+<script src="/assets/scripts.js"></script>
+
+
+
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '');
+</script>
+
+
+
+</body>
+
+</html>

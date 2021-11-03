@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-151373304-1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-151373304-1');
+	</script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>
+    RxJava2 puzzle: Do you understand subscribeOn? - Grégory Lureau
+    
+  </title>
+
+  <meta name="description" content="In this post I’ll display the response in white just after the questions, take time to challenge yourself before selecting the text to see the response ;)">
+
+  <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="/assets/vendor/bootstrap/css/bootstrap.min.css">
+
+  <link rel="stylesheet" href="/assets/vendor/fontawesome-free/css/all.min.css">
+
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="/syntax.css">
+  <link rel="canonical" href="https://www.glureau.com/2020/05/01/RxJava-Puzzle-SubscribeOn/">
+  <link rel="alternate" type="application/rss+xml" title="Grégory Lureau" href="/feed.xml">
+
+  <style type="text/css">
+    .gist .csv-data  {
+      overflow:auto;
+      max-height:350px;
+    }
+
+    .gist .file {
+      max-height:400px;
+      overflow:auto !important;
+    }
+
+    .gist .type-csv {
+      overflow:hidden !important;
+    }
+
+    .img {
+      position: relative;
+      max-height: 400px;
+      width: 100%
+    }
+
+    .highlight pre {
+      padding: 16px;
+    }
+
+    .youtube-container{
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%; 
+      height: 0;
+    }
+    .youtube-container iframe{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+table {
+  width: 100%;
+  text-align: center;
+}
+table td, table th {
+  border: 1px solid #FFFFFF;
+  padding: 3px 4px;
+}
+table tr:nth-child(even) {
+  background: #EBEBEB;
+}
+table thead th {
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  border-left: 2px solid #333333;
+}
+table thead th:first-child {
+  border-left: none;
+}
+
+table tfoot td {
+  font-size: 14px;
+}
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand" href="/">Grégory Lureau</a>
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+      Menu
+      <i class="fa fa-bars"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarResponsive">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/posts">Posts</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <!-- Page Header -->
+
+<header class="masthead" style="background-image: url('/pictures/Android-ImageSpan-Autosizing-background.png')">
+  
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 col-md-10 mx-auto">
+          <div class="post-heading">
+            <h1>RxJava2 puzzle: Do you understand subscribeOn?</h1>
+            
+            <h2 class="subheading">In my experience, the operator that has the lowest degree of understanding, and could definitely backfire at you in unexpected ways.</h2>
+            
+            <span class="meta">Posted by
+              <a href="#">Grégory Lureau</a>
+              on May 01, 2020 &middot; <span class="reading-time" title="Estimated read time">
+  
+   8 mins  read </span>
+
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+
+        <p>In this post I’ll display the response in white just after the questions, take time to challenge yourself before selecting the text to see the response ;)</p>
+
+<p>By default I’ll consider the code executed from the main thread.</p>
+
+<hr />
+
+<p>Just as a remember, the basic use case:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">Observable</span><span class="p">.</span><span class="nf">just</span><span class="p">(</span><span class="s">"item"</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">io</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">subscribe</span> <span class="p">{</span> <span class="nf">doSomething</span><span class="p">()</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here the <code class="language-kotlin highlighter-rouge"><span class="n">doSometing</span></code> method is called on one of the thread of the Schedulers.io().</p>
+
+<h1 id="puzzle-1---subscribeon--observeon">Puzzle 1 - subscribeOn + observeOn</h1>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">Observable</span><span class="p">.</span><span class="nf">just</span><span class="p">(</span><span class="s">"item"</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">observeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">io</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">computation</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">subscribe</span> <span class="p">{</span> <span class="nf">doSomething</span><span class="p">()</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>A - Main thread</p>
+
+<p>B - Computation</p>
+
+<p>C - IO</p>
+
+<p>D - It’s not executed</p>
+
+<hr />
+
+<p style="color:white;">
+IO - the subscribeOn operator impacts the start of the stream, until an observeOn changes the thread. The order of the subscribeOn is irrelevant.
+</p>
+
+<hr />
+
+<h1 id="puzzle-2---2-subscribeon">Puzzle 2 - 2 subscribeOn</h1>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">Observable</span><span class="p">.</span><span class="nf">just</span><span class="p">(</span><span class="s">"item"</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">computation</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">io</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">subscribe</span> <span class="p">{</span> <span class="nf">doSomething</span><span class="p">()</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>A - Main thread</p>
+
+<p>B - Computation</p>
+
+<p>C - IO</p>
+
+<p>D - It’s not executed</p>
+
+<hr />
+
+<p style="color:white;">
+Computation - the subscribeOn operator only consider the very first subscribeOn and ignore the other ones, so order matters.
+</p>
+
+<hr />
+
+<h1 id="puzzle-3---subscribeon--2-doonsubscribe">Puzzle 3 - subscribeOn + 2 doOnSubscribe</h1>
+
+<p><code class="language-kotlin highlighter-rouge"><span class="n">doOnSubscribe</span></code> offers the opportunity to react when the subscription occurs… but on which order is it executed?</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">Observable</span><span class="p">.</span><span class="nf">just</span><span class="p">(</span><span class="s">"item"</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">doOnSubscribe</span> <span class="p">{</span> <span class="nf">foo</span><span class="p">()</span> <span class="p">}</span>
+    <span class="p">.</span><span class="nf">doOnSubscribe</span> <span class="p">{</span> <span class="nf">bar</span><span class="p">()</span> <span class="p">}</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">computation</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">subscribe</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>A - foo() then bar()</p>
+
+<p>B - bar() then foo()</p>
+
+<p>C - only foo() is executed</p>
+
+<p>D - It’s not executed</p>
+
+<hr />
+
+<p style="color:white;">
+foo() then bar() - Same order than when you read the stream, convenient... right?
+</p>
+
+<hr />
+
+<h1 id="puzzle-4---2-subscribeon--2-doonsubscribe">Puzzle 4 - 2 subscribeOn + 2 doOnSubscribe</h1>
+
+<p>What if we add another subscribeOn</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">Observable</span><span class="p">.</span><span class="nf">just</span><span class="p">(</span><span class="s">"item"</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">doOnSubscribe</span> <span class="p">{</span> <span class="nf">foo</span><span class="p">()</span> <span class="p">}</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">computation</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">doOnSubscribe</span> <span class="p">{</span> <span class="nf">bar</span><span class="p">()</span> <span class="p">}</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">computation</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">subscribe</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>A - foo() then bar()</p>
+
+<p>B - bar() then foo()</p>
+
+<p>C - only foo() is executed</p>
+
+<p>D - only bar() is executed</p>
+
+<hr />
+
+<p style="color:white;">
+bar() then foo() - Opposite order than the previous method! 
+</p>
+
+<p style="color:white;">
+Feel lost? Let's do one more step before the explication
+</p>
+
+<hr />
+
+<h1 id="puzzle-5---3-subscribeon--2-doonsubscribe">Puzzle 5 - 3 subscribeOn + 2 doOnSubscribe</h1>
+
+<p>Let’s add another subscribeOn, and think about the threading on which foo() and bar() are executed.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">Observable</span><span class="p">.</span><span class="nf">just</span><span class="p">(</span><span class="s">"item"</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">single</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">doOnSubscribe</span> <span class="p">{</span> <span class="nf">foo</span><span class="p">()</span> <span class="p">}</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">computation</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">doOnSubscribe</span> <span class="p">{</span> <span class="nf">bar</span><span class="p">()</span> <span class="p">}</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">io</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">subscribe</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>A - foo() on Single then bar() on Computation</p>
+
+<p>B - bar() on IO then foo() on Computation</p>
+
+<p>C - bar() on Computation then foo() on Single</p>
+
+<p>D - I give up</p>
+
+<hr />
+
+<p style="color:white;">
+B - bar() on IO then foo() on Computation
+</p>
+
+<p style="color:white;">
+You can think the subscription stream from bottom to top, and the doOnSubscribe like a add to a runnable list. Each time you reaches a subscribeOn, you execute the runnables and after that change the thread.
+</p>
+
+<p style="color:white;">
+The execution of the subscription starts from the bottom and go up. 1st it reaches a subscribeOn so it switch thread, then it reaches doOnSubscribe { bar() } so it adds bar() in a sort of list. Then it reaches another subscribeOn, and here before changing thread it execute its list (so bar is executed). Once the executable list is empty, it will change again from threads, and eventually execute foo()
+</p>
+
+<hr />
+
+<h1 id="puzzle-5---subscribeon--timer">Puzzle 5 - subscribeOn + timer</h1>
+
+<p>Ok, too much lines, let’s restart from simple:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">Observable</span><span class="p">.</span><span class="nf">timer</span><span class="p">(</span><span class="m">10</span><span class="p">,</span> <span class="nc">TimeUnit</span><span class="p">.</span><span class="nc">MILLISECONDS</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">subscribeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">io</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">subscribe</span> <span class="p">{</span> <span class="nf">doSomething</span><span class="p">()</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>A - doSomething is executed on IO</p>
+
+<p>B - doSomething is executed on Single</p>
+
+<p>C - doSomething is executed on Computation</p>
+
+<p>D - doSomething is executed on main</p>
+
+<hr />
+
+<p style="color:white;">
+C - doSomething is executed on Computation
+</p>
+
+<p style="color:white;">
+Some methods, like timer or interval, takes a 3rd parameter for the scheduler. If you don't define it, the method has a default for you, here it's Computation.
+</p>
+
+<hr />
+
+<h1 id="puzzle-6---subscribeon--subject">Puzzle 6 - subscribeOn + Subject</h1>
+
+<p>Add some Subject now?</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">subject</span> <span class="p">=</span> <span class="nc">BehaviorSubject</span><span class="p">.</span><span class="n">create</span><span class="p">&lt;</span><span class="nc">String</span><span class="p">&gt;()</span>
+
+<span class="nc">Observable</span><span class="p">.</span><span class="nf">just</span><span class="p">(</span><span class="m">0</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">observeOn</span><span class="p">(</span><span class="nc">Schedulers</span><span class="p">.</span><span class="nf">io</span><span class="p">())</span>
+    <span class="p">.</span><span class="nf">subscribe</span> <span class="p">{</span> <span class="n">subject</span><span class="p">.</span><span class="nf">onNext</span><span class="p">(</span><span class="s">"any"</span><span class="p">)</span> <span class="p">}</span>
+
+<span class="nc">Thread</span><span class="p">.</span><span class="nf">sleep</span><span class="p">(</span><span class="m">10</span><span class="p">)</span>
+
+<span class="n">subject</span><span class="p">.</span><span class="nf">subscribe</span> <span class="p">{</span> <span class="nf">doSomething</span><span class="p">(</span><span class="n">it</span><span class="p">)</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>A - doSomething is executed on main</p>
+
+<p>B - doSomething is executed on Computation</p>
+
+<p>C - doSomething is not executed</p>
+
+<p>D - doSomething is executed on io</p>
+
+<hr />
+
+<p style="color:white;">
+A or D - it depends!
+</p>
+
+<p style="color:white;">
+I've seen this pattern multiple times. The logic behind was  something like 
+</p>
+<p style="color:white;">
+&lt;&lt; if all my network calls are done on IO, then I can publish the result in a Subject and observers of the subject will receive items on IO too &gt;&gt;
+</p>
+
+<p style="color:white;">
+Unfortunetaly, it's not that simple when the subject has a "memory" like Behaviour or Replay subjects. When you subscribe, if the data is already in memory, you'll receive the data on the main thread, if there was no data yet then you'll receive the data on the IO thread, preserving the thread. So you can use this approach with Subject without memory but it's not really safe as you can see.
+</p>
+<p style="color:white;">
+Right now on my computer, if I change the sleep to 0ms, "any" is received on IO, if I change the sleep to 1ms, "any" is received on main.
+</p>
+<hr />
+
+<p>If you’ve experienced some difficulties on these questions, I’ll soon write an article on my best practices to avoid these pitfalls.</p>
+
+
+        <hr>
+        
+
+        <div id="disqus_thread"></div>
+        <script>
+        var disqus_config = function () {
+          this.page.url = "https://www.glureau.com/2020/05/01/RxJava-Puzzle-SubscribeOn/";
+          this.page.identifier = "/2020/05/01/RxJava-Puzzle-SubscribeOn/";
+        };
+
+        (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = 'https://www-glureau-com.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+        })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                                    
+
+        <div class="clearfix">
+
+          
+          <a class="btn btn-primary float-left" href="/2020/04/29/RxJava-Puzzle-Scheduler-3rd-param/" data-toggle="tooltip" data-placement="top" title="RxJava2 puzzle: Scheduler as 3rd parameter">&larr; Previous<span class="d-none d-md-inline">
+              Post</span></a>
+          
+          
+          <a class="btn btn-primary float-right" href="/2020/05/01/RxJava-Puzzle-Subscription-Threading/" data-toggle="tooltip" data-placement="top" title="RxJava2 puzzle: Subscription threading">Next<span class="d-none d-md-inline">
+              Post</span> &rarr;</a>
+          
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+
+<hr>
+
+<footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+        <ul class="list-inline text-center">
+          
+          <li class="list-inline-item">
+            <a href="mailto:gregorylureau@gmail.com">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="far fa-envelope fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+        </ul>
+        <p class="copyright text-muted">Copyright &copy; Grégory Lureau 2021</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+  <script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/vendor/startbootstrap-clean-blog/js/clean-blog.min.js"></script>
+
+<script src="/assets/scripts.js"></script>
+
+
+
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '');
+</script>
+
+
+
+</body>
+
+</html>

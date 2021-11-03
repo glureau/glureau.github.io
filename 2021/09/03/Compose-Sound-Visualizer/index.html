@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-151373304-1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-151373304-1');
+	</script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>
+    An audio visualization with Jetpack Compose - Grégory Lureau
+    
+  </title>
+
+  <meta name="description" content="In this article, you’ll learn some bits about Jetpack Compose, Android audio visualizer and how to draw a nice animation based on the audio input. You can do...">
+
+  <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="/assets/vendor/bootstrap/css/bootstrap.min.css">
+
+  <link rel="stylesheet" href="/assets/vendor/fontawesome-free/css/all.min.css">
+
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="/syntax.css">
+  <link rel="canonical" href="https://www.glureau.com/2021/09/03/Compose-Sound-Visualizer/">
+  <link rel="alternate" type="application/rss+xml" title="Grégory Lureau" href="/feed.xml">
+
+  <style type="text/css">
+    .gist .csv-data  {
+      overflow:auto;
+      max-height:350px;
+    }
+
+    .gist .file {
+      max-height:400px;
+      overflow:auto !important;
+    }
+
+    .gist .type-csv {
+      overflow:hidden !important;
+    }
+
+    .img {
+      position: relative;
+      max-height: 400px;
+      width: 100%
+    }
+
+    .highlight pre {
+      padding: 16px;
+    }
+
+    .youtube-container{
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%; 
+      height: 0;
+    }
+    .youtube-container iframe{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+table {
+  width: 100%;
+  text-align: center;
+}
+table td, table th {
+  border: 1px solid #FFFFFF;
+  padding: 3px 4px;
+}
+table tr:nth-child(even) {
+  background: #EBEBEB;
+}
+table thead th {
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  border-left: 2px solid #333333;
+}
+table thead th:first-child {
+  border-left: none;
+}
+
+table tfoot td {
+  font-size: 14px;
+}
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand" href="/">Grégory Lureau</a>
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+      Menu
+      <i class="fa fa-bars"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarResponsive">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/posts">Posts</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <!-- Page Header -->
+
+<header class="masthead" style="background-image: url('/pictures/compose-equalizer.jpg')">
+  
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 col-md-10 mx-auto">
+          <div class="post-heading">
+            <h1>An audio visualization with Jetpack Compose</h1>
+            
+            <h2 class="subheading">Yet another Jetpack Compose article, this time with a bit of Audio, to make your animations a bit more dynamic!</h2>
+            
+            <span class="meta">Posted by
+              <a href="#">Grégory Lureau</a>
+              on September 03, 2021 &middot; <span class="reading-time" title="Estimated read time">
+  
+   13 mins  read </span>
+
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+
+        <p>In this article, you’ll learn some bits about Jetpack Compose, Android audio visualizer and how to draw a nice animation based on the audio input. You can download the repository <a href="https://github.com/glureau/Equalizer">here</a> to check the final result.</p>
+
+<p>As Compose is not stable yet, be aware that stuff could evolve. (I based the article on this <a href="https://github.com/glureau/Equalizer">project</a>, check the exact versions there.)</p>
+
+<p>For the audio data, we’ll use the android audiofx <a href="https://developer.android.com/reference/android/media/audiofx/Visualizer">Visualizer</a> as it provides directly FFT and wave form. No worry, we don’t need to understand how it’s computed, but just as a quick introduction:</p>
+<ul>
+  <li>FFT shows the frequencies used, and it’s generally a lot of basses and way less high frequencies, very unbalanced for a shiny animation</li>
+  <li>Wave form is <a href="https://en.wikipedia.org/wiki/Waveform">the shape of its graph as a function of time, independent of its time and mag…</a> well it’s a signal way more balanced and dynamic, perfect for our animation.</li>
+</ul>
+
+<p>To use Visualizer, we need 2 permissions:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">&lt;</span><span class="n">uses-permission</span> <span class="n">android</span><span class="p">:</span><span class="n">name</span><span class="p">=</span><span class="s">"android.permission.RECORD_AUDIO"</span><span class="p">/&gt;</span>
+<span class="p">&lt;</span><span class="n">uses-permission</span> <span class="n">android</span><span class="p">:</span><span class="n">name</span><span class="p">=</span><span class="s">"android.permission.MODIFY_AUDIO_SETTINGS"</span> <span class="p">/&gt;</span>
+</code></pre></div></div>
+
+<p>And we’ll also need to request the runtime permission for RECORD_AUDIO:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="p">(</span><span class="nc">ContextCompat</span><span class="p">.</span><span class="nf">checkSelfPermission</span><span class="p">(</span><span class="n">activity</span><span class="p">,</span> <span class="nc">Manifest</span><span class="p">.</span><span class="n">permission</span><span class="p">.</span><span class="nc">RECORD_AUDIO</span><span class="p">)</span> <span class="p">!=</span> <span class="nc">PackageManager</span><span class="p">.</span><span class="nc">PERMISSION_GRANTED</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nc">ActivityCompat</span><span class="p">.</span><span class="nf">requestPermissions</span><span class="p">(</span><span class="n">activity</span><span class="p">,</span> <span class="nf">arrayOf</span><span class="p">(</span><span class="nc">Manifest</span><span class="p">.</span><span class="n">permission</span><span class="p">.</span><span class="nc">RECORD_AUDIO</span><span class="p">),</span> <span class="m">42</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>(42 is the request id that you’ll need to implement properly the permission, not the topic of this article so let’s hack this)</p>
+
+<p>Now let’s implement a basic code to play a mp3 file from the asset folder</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">private</span> <span class="kd">var</span> <span class="py">player</span><span class="p">:</span> <span class="nc">MediaPlayer</span><span class="p">?</span> <span class="p">=</span> <span class="k">null</span>
+<span class="k">private</span> <span class="k">fun</span> <span class="nf">play</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">afd</span> <span class="p">=</span> <span class="n">assets</span><span class="p">.</span><span class="nf">openFd</span><span class="p">(</span><span class="s">"mymusic.mp3"</span><span class="p">)</span>
+    <span class="n">player</span> <span class="p">=</span> <span class="nc">MediaPlayer</span><span class="p">().</span><span class="nf">apply</span> <span class="p">{</span>
+        <span class="nf">setDataSource</span><span class="p">(</span><span class="n">afd</span><span class="p">.</span><span class="n">fileDescriptor</span><span class="p">,</span> <span class="n">afd</span><span class="p">.</span><span class="n">startOffset</span><span class="p">,</span> <span class="n">afd</span><span class="p">.</span><span class="n">length</span><span class="p">)</span>
+        <span class="nf">prepare</span><span class="p">()</span>
+        <span class="nf">start</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">private</span> <span class="k">fun</span> <span class="nf">stop</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">player</span><span class="o">?.</span><span class="nf">stop</span><span class="p">()</span>
+    <span class="n">player</span><span class="o">?.</span><span class="nf">release</span><span class="p">()</span>
+    <span class="n">player</span> <span class="p">=</span> <span class="k">null</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>And our first JetpackCompose button in the UI to play/pause the player. For now, let’s put that directly in the MainActivity, inside the default <code class="language-kotlin highlighter-rouge"><span class="nf">setContent</span> <span class="p">{}</span></code> (created automatically when creating a new Compose project with an empty Compose activity).
+If you’re not clear on the Jetpack Compose usage, it could be the right time to pause the watch some intro first.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nf">setContent</span> <span class="p">{</span>
+        <span class="kd">val</span> <span class="p">(</span><span class="py">isPlaying</span><span class="p">,</span> <span class="py">setPlaying</span><span class="p">)</span> <span class="p">=</span> <span class="nf">remember</span> <span class="p">{</span> <span class="nf">mutableStateOf</span><span class="p">(</span><span class="k">false</span><span class="p">)</span> <span class="p">}</span>
+        <span class="nc">EqualizerTheme</span> <span class="p">{</span>
+            <span class="c1">// A surface container using the 'background' color from the theme</span>
+            <span class="nc">Surface</span><span class="p">(</span><span class="n">color</span> <span class="p">=</span> <span class="nc">MaterialTheme</span><span class="p">.</span><span class="n">colors</span><span class="p">.</span><span class="n">background</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nc">Button</span><span class="p">(</span><span class="n">onClick</span> <span class="p">=</span> <span class="p">{</span> <span class="nf">setPlaying</span><span class="p">(!</span><span class="n">isPlaying</span><span class="p">)</span> <span class="p">})</span> <span class="p">{</span> 
+                    <span class="nc">Text</span><span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="n">isPlaying</span><span class="p">)</span> <span class="s">"pause"</span> <span class="k">else</span> <span class="s">"stop"</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">isPlaying</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nf">play</span><span class="p">()</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="nf">stop</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+</code></pre></div></div>
+
+<p>We’re good to instantiate the Visualizer now.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">visualizer</span> <span class="p">=</span> <span class="nc">Visualizer</span><span class="p">(</span><span class="n">audioSessionId</span><span class="p">).</span><span class="nf">apply</span> <span class="p">{</span>
+    <span class="n">enabled</span> <span class="p">=</span> <span class="k">false</span> <span class="c1">// All configuration have to be done in a disabled state</span>
+    <span class="n">captureSize</span> <span class="p">=</span> <span class="nc">Visualizer</span><span class="p">.</span><span class="nf">getCaptureSizeRange</span><span class="p">()[</span><span class="m">0</span><span class="p">]</span> <span class="c1">// Minimum sampling</span>
+    <span class="nf">setDataCaptureListener</span><span class="p">(</span>
+        <span class="kd">object</span> <span class="err">: </span><span class="nc">Visualizer</span><span class="p">.</span><span class="nc">OnDataCaptureListener</span> <span class="p">{</span>
+            <span class="k">override</span> <span class="k">fun</span> <span class="nf">onFftDataCapture</span><span class="p">(</span><span class="n">visualizer</span><span class="p">:</span> <span class="nc">Visualizer</span><span class="p">,</span> <span class="n">fft</span><span class="p">:</span> <span class="nc">ByteArray</span><span class="p">,</span> <span class="n">samplingRate</span><span class="p">:</span> <span class="nc">Int</span><span class="p">)</span> <span class="p">{</span>
+            <span class="p">}</span>
+            <span class="k">override</span> <span class="k">fun</span> <span class="nf">onWaveFormDataCapture</span><span class="p">(</span><span class="n">visualizer</span><span class="p">:</span> <span class="nc">Visualizer</span><span class="p">,</span> <span class="n">waveform</span><span class="p">:</span> <span class="nc">ByteArray</span><span class="p">,</span> <span class="n">samplingRate</span><span class="p">:</span> <span class="nc">Int</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nf">process</span><span class="p">(</span><span class="n">waveform</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="nc">Visualizer</span><span class="p">.</span><span class="nf">getMaxCaptureRate</span><span class="p">(),</span> <span class="k">true</span><span class="p">,</span> <span class="k">true</span><span class="p">)</span>
+    <span class="n">enabled</span> <span class="p">=</span> <span class="k">true</span> <span class="c1">// Configuration is done, can enable now...</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li>The audioSessionId comes from the player.audioSessionId, it allows to select a specific audio stream, so that you only get the data from your stream and avoid notification sound impact. Also you could use the value ‘0’ to get the result of all mixed audio streams.</li>
+  <li>The enabled=false is a safe measure if you want to change dynamically capture settings, as all settings operation have to be done in a disabled state (or else it throws an exception).</li>
+  <li>The capture size is specific to the hardware (ex: on my current device the range is [128-1024]), here we don’t need a lot of data points to have a funky animation yet, so we start low to reduce memory footprint.</li>
+  <li>Eventually the callback gives us 2 streams, and we’ll only take care of waveform as previously mentionned.</li>
+</ul>
+
+<p>Since the capture size is specific to the device (using a value out of the range will crash), you may want to change the capture size to match your animation sampling size. As we’re starting with a basic equalizer composed of 32 columns, we only need 32 data point, so we can re-sample the Visualizer output :</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">resolution</span> <span class="p">=</span> <span class="m">32</span>
+<span class="kd">val</span> <span class="py">processed</span> <span class="p">=</span> <span class="nc">IntArray</span><span class="p">(</span><span class="n">resolution</span><span class="p">)</span>
+<span class="kd">val</span> <span class="py">captureSize</span> <span class="p">=</span> <span class="nc">Visualizer</span><span class="p">.</span><span class="nf">getCaptureSizeRange</span><span class="p">()[</span><span class="m">0</span><span class="p">]</span> <span class="c1">// Same value than in the Visualizer setup</span>
+<span class="kd">val</span> <span class="py">groupSize</span> <span class="p">=</span> <span class="n">captureSize</span> <span class="p">/</span> <span class="n">resolution</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="k">in</span> <span class="m">0</span> <span class="n">until</span> <span class="n">resolution</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">processed</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">=</span> <span class="n">data</span><span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="nf">abs</span><span class="p">(</span><span class="n">it</span><span class="p">.</span><span class="nf">toInt</span><span class="p">())</span> <span class="p">}</span>
+        <span class="p">.</span><span class="nf">subList</span><span class="p">(</span><span class="n">i</span> <span class="p">*</span> <span class="n">groupSize</span><span class="p">,</span> <span class="nf">min</span><span class="p">((</span><span class="n">i</span> <span class="p">+</span> <span class="m">1</span><span class="p">)</span> <span class="p">*</span> <span class="n">groupSize</span><span class="p">,</span> <span class="n">data</span><span class="p">.</span><span class="n">size</span><span class="p">))</span>
+        <span class="p">.</span><span class="nf">average</span><span class="p">().</span><span class="nf">toInt</span><span class="p">()</span>
+<span class="p">}</span>
+<span class="c1">// processed has the re-sampled data now.</span>
+</code></pre></div></div>
+
+<p>This re-sampling is super basic, but all allowed captures values on the Visualizer should be a power of 2, so if we also take a power of 2 for the resolution we’re fine.</p>
+
+<p>On the <a href="https://github.com/glureau/Equalizer">github project</a>, I use my own data class named VisualizerData to store the processing result as it will be handy later, but you can consider a simple IntArray for now.</p>
+
+<p>Now let’s draw the equalizer!</p>
+
+<p>Requirements:</p>
+<ul>
+  <li>takes all the space available</li>
+  <li>draw a row of 32 bars with a little padding between each bar</li>
+  <li>animate the height of bars so the animation is smooth</li>
+</ul>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+    <span class="nd">@Composable</span>
+    <span class="k">fun</span> <span class="nf">BarEqualizer</span><span class="p">(</span>
+        <span class="n">modifier</span><span class="p">:</span> <span class="nc">Modifier</span><span class="p">,</span>
+        <span class="n">visualizationData</span><span class="p">:</span> <span class="nc">VisualizerData</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="py">size</span> <span class="k">by</span> <span class="nf">remember</span> <span class="p">{</span> <span class="nf">mutableStateOf</span><span class="p">(</span><span class="nc">IntSize</span><span class="p">.</span><span class="nc">Zero</span><span class="p">)</span> <span class="p">}</span>
+        <span class="nc">Row</span><span class="p">(</span><span class="n">modifier</span><span class="p">.</span><span class="nf">onSizeChanged</span> <span class="p">{</span> <span class="n">size</span> <span class="p">=</span> <span class="n">it</span> <span class="p">})</span> <span class="p">{</span>
+            <span class="kd">val</span> <span class="py">widthDp</span> <span class="p">=</span> <span class="n">size</span><span class="p">.</span><span class="nf">getWidthDp</span><span class="p">()</span>
+            <span class="kd">val</span> <span class="py">heightDp</span> <span class="p">=</span> <span class="n">size</span><span class="p">.</span><span class="nf">getHeightDp</span><span class="p">()</span>
+            <span class="kd">val</span> <span class="py">padding</span> <span class="p">=</span> <span class="m">1</span><span class="p">.</span><span class="n">dp</span>
+            <span class="kd">val</span> <span class="py">barWidthDp</span> <span class="p">=</span> <span class="n">widthDp</span> <span class="p">/</span> <span class="n">visualizationData</span><span class="p">.</span><span class="n">resolution</span>
+
+            <span class="n">visualizationData</span><span class="p">.</span><span class="n">bytes</span><span class="p">.</span><span class="nf">forEachIndexed</span> <span class="p">{</span> <span class="n">index</span><span class="p">,</span> <span class="n">data</span> <span class="p">-&gt;</span>
+                <span class="kd">val</span> <span class="py">height</span> <span class="k">by</span> <span class="nf">animateDpAsState</span><span class="p">(</span><span class="n">targetValue</span> <span class="p">=</span> <span class="n">heightDp</span> <span class="p">*</span> <span class="n">data</span> <span class="p">/</span> <span class="m">128f</span><span class="p">)</span>
+                <span class="nc">Box</span><span class="p">(</span>
+                    <span class="nc">Modifier</span>
+                        <span class="p">.</span><span class="nf">width</span><span class="p">(</span><span class="n">barWidthDp</span><span class="p">)</span>
+                        <span class="p">.</span><span class="nf">height</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+                        <span class="p">.</span><span class="nf">padding</span><span class="p">(</span><span class="n">start</span> <span class="p">=</span> <span class="k">if</span> <span class="p">(</span><span class="n">index</span> <span class="p">==</span> <span class="m">0</span><span class="p">)</span> <span class="m">0</span><span class="p">.</span><span class="n">dp</span> <span class="k">else</span> <span class="n">padding</span><span class="p">)</span>
+                        <span class="p">.</span><span class="nf">background</span><span class="p">(</span><span class="nc">MaterialTheme</span><span class="p">.</span><span class="n">colors</span><span class="p">.</span><span class="n">primaryVariant</span><span class="p">)</span>
+                        <span class="p">.</span><span class="nf">align</span><span class="p">(</span><span class="nc">Alignment</span><span class="p">.</span><span class="nc">Bottom</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="nd">@Composable</span>
+    <span class="k">fun</span> <span class="nc">IntSize</span><span class="p">.</span><span class="nf">getWidthDp</span><span class="p">():</span> <span class="nc">Dp</span> <span class="p">=</span> <span class="nc">LocalDensity</span><span class="p">.</span><span class="n">current</span><span class="p">.</span><span class="nf">run</span> <span class="p">{</span> <span class="n">width</span><span class="p">.</span><span class="nf">toDp</span><span class="p">()</span> <span class="p">}</span>
+
+    <span class="nd">@Composable</span>
+    <span class="k">fun</span> <span class="nc">IntSize</span><span class="p">.</span><span class="nf">getHeightDp</span><span class="p">():</span> <span class="nc">Dp</span> <span class="p">=</span> <span class="nc">LocalDensity</span><span class="p">.</span><span class="n">current</span><span class="p">.</span><span class="nf">run</span> <span class="p">{</span> <span class="n">height</span><span class="p">.</span><span class="nf">toDp</span><span class="p">()</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>Yes maths are a bit wrong, the 1st bar is 1dp too large, just for sake of simplicity.
+But the intersting part is actually the animation, that is a oneliner without any specific values here.
+That’s right, <code class="language-kotlin highlighter-rouge"><span class="n">animateDbAsState</span></code> takes the new wanted height and will smooth the transition to the new desired height, so that we don’t need to care too much.
+Indeed you could want to use the full animation API to setup your own AnimationSpec and reduce the sampling frequency.</p>
+
+<p>Let’s plug into into our MainActivity: we need to define another state based on the data, and pass it to the new BarEqualizer</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// MainActivity</span>
+
+    <span class="nf">setContent</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">visualizerData</span> <span class="p">=</span> <span class="nf">remember</span> <span class="p">{</span> <span class="nf">mutableStateOf</span><span class="p">(</span><span class="nc">VisualizerData</span><span class="p">())</span> <span class="p">}</span>
+    <span class="kd">val</span> <span class="p">(</span><span class="py">isPlaying</span><span class="p">,</span> <span class="py">setPlaying</span><span class="p">)</span> <span class="p">=</span> <span class="nf">remember</span> <span class="p">{</span> <span class="nf">mutableStateOf</span><span class="p">(</span><span class="k">false</span><span class="p">)</span> <span class="p">}</span>
+    <span class="nc">EqualizerTheme</span> <span class="p">{</span>
+        <span class="c1">// A surface container using the 'background' color from the theme</span>
+        <span class="nc">Surface</span><span class="p">(</span><span class="n">color</span> <span class="p">=</span> <span class="nc">MaterialTheme</span><span class="p">.</span><span class="n">colors</span><span class="p">.</span><span class="n">background</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nc">Content</span><span class="p">(</span><span class="n">isPlaying</span><span class="p">,</span> <span class="n">setPlaying</span><span class="p">,</span> <span class="n">visualizerData</span><span class="p">)</span>
+        <span class="p">}</span>
+<span class="na">        [...]</span>
+
+<span class="c1">// Content</span>
+
+<span class="nd">@Composable</span>
+<span class="k">fun</span> <span class="nf">Content</span><span class="p">(</span>
+    <span class="n">isPlaying</span><span class="p">:</span> <span class="nc">Boolean</span><span class="p">,</span>
+    <span class="n">setPlaying</span><span class="p">:</span> <span class="p">(</span><span class="nc">Boolean</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="nc">Unit</span><span class="p">,</span>
+    <span class="n">visualizerData</span><span class="p">:</span> <span class="nc">MutableState</span><span class="p">&lt;</span><span class="nc">VisualizerData</span><span class="p">&gt;</span>
+<span class="p">)</span> <span class="p">{</span>
+    <span class="nc">Column</span> <span class="p">{</span>
+        <span class="nc">Button</span><span class="p">(</span><span class="n">onClick</span> <span class="p">=</span> <span class="p">{</span>
+            <span class="nf">setPlaying</span><span class="p">(!</span><span class="n">isPlaying</span><span class="p">)</span>
+        <span class="p">})</span> <span class="p">{</span>
+            <span class="nc">Text</span><span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="n">isPlaying</span><span class="p">)</span> <span class="s">"stop"</span> <span class="k">else</span> <span class="s">"play"</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="nc">BarEqualizer</span><span class="p">(</span>
+            <span class="nc">Modifier</span>
+                <span class="p">.</span><span class="nf">fillMaxWidth</span><span class="p">()</span>
+                <span class="p">.</span><span class="nf">height</span><span class="p">(</span><span class="m">100</span><span class="p">.</span><span class="n">dp</span><span class="p">)</span>
+                <span class="p">.</span><span class="nf">background</span><span class="p">(</span><span class="nc">Color</span><span class="p">(</span><span class="m">0</span><span class="n">x40000000</span><span class="p">)),</span>
+            <span class="n">visualizerData</span><span class="p">.</span><span class="n">value</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>That’s it folks! Now you can add some fancy colors and add more maths to make it pretty. Let’s have some fun</p>
+
+<iframe width="888" height="666" src="https://www.youtube.com/embed/Z5hTpUuXQ94" frameborder="0" allowfullscreen=""></iframe>
+
+<hr />
+
+<p>Bonus : <a href="https://francoisromain.medium.com/smooth-a-svg-path-with-cubic-bezier-curves-e37b49d46c74">circular equalizer + cubic bezier curves</a></p>
+
+
+        <hr>
+        
+
+        <div id="disqus_thread"></div>
+        <script>
+        var disqus_config = function () {
+          this.page.url = "https://www.glureau.com/2021/09/03/Compose-Sound-Visualizer/";
+          this.page.identifier = "/2021/09/03/Compose-Sound-Visualizer/";
+        };
+
+        (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = 'https://www-glureau-com.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+        })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                                    
+
+        <div class="clearfix">
+
+          
+          <a class="btn btn-primary float-left" href="/2020/05/26/Ktlint-Moshi-Introduction/" data-toggle="tooltip" data-placement="top" title="Ktlint: a great 1st experience">&larr; Previous<span class="d-none d-md-inline">
+              Post</span></a>
+          
+          
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+
+<hr>
+
+<footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+        <ul class="list-inline text-center">
+          
+          <li class="list-inline-item">
+            <a href="mailto:gregorylureau@gmail.com">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="far fa-envelope fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+        </ul>
+        <p class="copyright text-muted">Copyright &copy; Grégory Lureau 2021</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+  <script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/vendor/startbootstrap-clean-blog/js/clean-blog.min.js"></script>
+
+<script src="/assets/scripts.js"></script>
+
+
+
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '');
+</script>
+
+
+
+</body>
+
+</html>

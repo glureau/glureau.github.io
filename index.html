@@ -1,9 +1,356 @@
----
-layout: default
-title: ""
-description: ""
-background: "/pictures/angela-compagnone-4Iyg6cNU7sI-unsplash.jpg"
----
+<!DOCTYPE html>
 
-html
-  <p class="rss-subscribe">Get notified of my new articles <a href="{{ "/feed.xml" | prepend: site.baseurl }}">via RSS</a></p>
+<html>
+
+<head>
+
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-151373304-1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-151373304-1');
+	</script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>
+    Grégory Lureau
+  </title>
+
+  <meta name="description" content="Android developer, Kotlin fan, Rx lover Feel free to contact me for anything.">
+
+  <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="/assets/vendor/bootstrap/css/bootstrap.min.css">
+
+  <link rel="stylesheet" href="/assets/vendor/fontawesome-free/css/all.min.css">
+
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="/syntax.css">
+  <link rel="canonical" href="https://www.glureau.com/">
+  <link rel="alternate" type="application/rss+xml" title="Grégory Lureau" href="/feed.xml">
+
+  <style type="text/css">
+    .gist .csv-data  {
+      overflow:auto;
+      max-height:350px;
+    }
+
+    .gist .file {
+      max-height:400px;
+      overflow:auto !important;
+    }
+
+    .gist .type-csv {
+      overflow:hidden !important;
+    }
+
+    .img {
+      position: relative;
+      max-height: 400px;
+      width: 100%
+    }
+
+    .highlight pre {
+      padding: 16px;
+    }
+
+    .youtube-container{
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%; 
+      height: 0;
+    }
+    .youtube-container iframe{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+table {
+  width: 100%;
+  text-align: center;
+}
+table td, table th {
+  border: 1px solid #FFFFFF;
+  padding: 3px 4px;
+}
+table tr:nth-child(even) {
+  background: #EBEBEB;
+}
+table thead th {
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  border-left: 2px solid #333333;
+}
+table thead th:first-child {
+  border-left: none;
+}
+
+table tfoot td {
+  font-size: 14px;
+}
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand" href="/">Grégory Lureau</a>
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+      Menu
+      <i class="fa fa-bars"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarResponsive">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/posts">Posts</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+  <!-- Page Header -->
+
+<header class="masthead" style="background-image: url('/pictures/angela-compagnone-4Iyg6cNU7sI-unsplash.jpg')">
+  
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 col-md-10 mx-auto">
+          <div class="page-heading">
+            <h1>Grégory Lureau</h1>
+            
+            <span class="subheading">Android developer, Kotlin fan, Rx lover</br> Feel free to contact me for anything.</span>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+
+        <p class="rss-subscribe">Get notified of my new articles <a href="/feed.xml">via RSS</a></p>
+
+
+        <!-- Home Post List -->
+        
+
+        <article class="post-preview">
+          <a href="/2021/09/03/Compose-Sound-Visualizer/">
+            <h2 class="post-title">An audio visualization with Jetpack Compose</h2>
+            
+            <h3 class="post-subtitle">Yet another Jetpack Compose article, this time with a bit of Audio, to make your animations a bit more dynamic!</h3>
+            
+          </a>
+          <p class="post-meta">Posted by
+            
+            Grégory Lureau
+            
+            on
+            September 03, 2021 &middot; <span class="reading-time" title="Estimated read time">
+  
+   13 mins  read </span>
+            
+          </p>
+        </article>
+
+        <hr>
+
+        
+
+        <article class="post-preview">
+          <a href="/2020/05/26/Ktlint-Moshi-Introduction/">
+            <h2 class="post-title">Ktlint: a great 1st experience</h2>
+            
+            <h3 class="post-subtitle">Code generation is often perceived as a compile-time security. We're ready to pay it by increasing the build time. But what if a linter was a replacement for compile-time safety while delivering a better code.</h3>
+            
+          </a>
+          <p class="post-meta">Posted by
+            
+            Grégory Lureau
+            
+            on
+            May 26, 2020 &middot; <span class="reading-time" title="Estimated read time">
+  
+   18 mins  read </span>
+            
+          </p>
+        </article>
+
+        <hr>
+
+        
+
+        <article class="post-preview">
+          <a href="/2020/05/15/Jetpack-ViewModel-ProCons/">
+            <h2 class="post-title">Should I use Jetpack ViewModel?</h2>
+            
+            <h3 class="post-subtitle">All new shiny libraries are not good for all projects, it has to responds to a real problem first. Let's see if you should pick Jetpack ViewModel.</h3>
+            
+          </a>
+          <p class="post-meta">Posted by
+            
+            Grégory Lureau
+            
+            on
+            May 15, 2020 &middot; <span class="reading-time" title="Estimated read time">
+  
+   20 mins  read </span>
+            
+          </p>
+        </article>
+
+        <hr>
+
+        
+
+        <article class="post-preview">
+          <a href="/2020/05/02/RxJava-SubscribeOn-HowTo/">
+            <h2 class="post-title">RxJava2 subscribeOn: How to use it</h2>
+            
+            <h3 class="post-subtitle">subscribeOn is an operator that can be easily used in the wrong place and lead to subtle bugs and even ANR. Some tips to avoid the pitfalls.</h3>
+            
+          </a>
+          <p class="post-meta">Posted by
+            
+            Grégory Lureau
+            
+            on
+            May 02, 2020 &middot; <span class="reading-time" title="Estimated read time">
+  
+   11 mins  read </span>
+            
+          </p>
+        </article>
+
+        <hr>
+
+        
+
+        <article class="post-preview">
+          <a href="/2020/05/01/RxJava-Puzzle-Subscription-Threading/">
+            <h2 class="post-title">RxJava2 puzzle: Subscription threading</h2>
+            
+            <h3 class="post-subtitle">Understanding subscribeOn is required, but that's not always enough.</h3>
+            
+          </a>
+          <p class="post-meta">Posted by
+            
+            Grégory Lureau
+            
+            on
+            May 01, 2020 &middot; <span class="reading-time" title="Estimated read time">
+  
+   7 mins  read </span>
+            
+          </p>
+        </article>
+
+        <hr>
+
+        
+
+        <!-- Pager -->
+        <div class="clearfix">
+          <a class="btn btn-primary float-right" href="/posts">View All Posts &rarr;</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+
+<hr>
+
+<footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-10 col-md-10 mx-auto">
+        <ul class="list-inline text-center">
+          
+          <li class="list-inline-item">
+            <a href="mailto:gregorylureau@gmail.com">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="far fa-envelope fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          <li class="list-inline-item">
+            <a href="https://twitter.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+          
+          
+          
+          <li class="list-inline-item">
+            <a href="https://github.com/glureau">
+              <span class="fa-stack fa-lg">
+                <i class="fas fa-circle fa-stack-2x"></i>
+                <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+        </ul>
+        <p class="copyright text-muted">Copyright &copy; Grégory Lureau 2021</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+  <script src="/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/vendor/startbootstrap-clean-blog/js/clean-blog.min.js"></script>
+
+<script src="/assets/scripts.js"></script>
+
+
+
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '');
+</script>
+
+
+
+</body>
+
+</html>
