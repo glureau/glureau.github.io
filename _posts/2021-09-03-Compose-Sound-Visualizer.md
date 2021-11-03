@@ -201,7 +201,7 @@ Let's plug into into our MainActivity: we need to define another state based on 
 That's it folks! Now you can add some fancy colors and add more maths to make it pretty. Let's have some fun
 
 
-<iframe width="888" height="666" src="https://youtu.be/Z5hTpUuXQ94" frameborder="0" allowfullscreen></iframe>
+<iframe width="888" height="666" src="https://www.youtube.com/embed/Z5hTpUuXQ94" frameborder="0" allowfullscreen></iframe>
 
 
 
